@@ -1,14 +1,21 @@
 {
-  "name": "manga-viewer",
-  "description": "A Vue.js web extension",
+  "name": "MangaViewer",
+  "description": "ウェブサイトの画像をマンガビューアー形式で表示",
   "version": null,
   "manifest_version": 2,
+  "incognito" : "split",
   "icons": {
     "48": "icons/icon_48.png",
     "128": "icons/icon_128.png"
   },
+  "permissions": [
+    "tabs",
+    "contextMenus",
+    "http://*/*",
+    "https://*/*"
+  ],
   "browser_action": {
-    "default_title": "manga-viewer",
+    "default_title": "MangaViewer",
     "default_popup": "popup/popup.html"
   },
   "background": {
@@ -19,5 +26,21 @@
   "options_ui": {
     "page": "options/options.html",
     "chrome_style": true
+  },
+  "commands": {
+    "change_image_preview":{
+        "suggested_key": {
+            "default": "Ctrl+Shift+M",
+            "mac": "Command+Shift+M"
+        },
+        "description": "Change MangaViewer"
+    },
+    "_execute_browser_action":{
+        "suggested_key": {
+            "default": "Ctrl+Shift+K",
+            "mac": "Command+Shift+K"
+        },
+        "description": "View MangaViewer's popup"
+    }
   }
 }
