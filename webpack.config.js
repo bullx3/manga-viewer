@@ -8,11 +8,13 @@ const { version } = require('./package.json');
 
 const config = {
   mode: process.env.NODE_ENV,
+  devtool: 'source-map',
   context: __dirname + '/src',
   entry: {
     'background': './background.js',
     'popup/popup': './popup/popup.js',
     'options/options': './options/options.js',
+    'viewer/viewer': './viewer/viewer.js',
   },
   output: {
     path: __dirname + '/dist',
@@ -78,6 +80,8 @@ const config = {
       { from: 'icons', to: 'icons', ignore: ['icon.xcf'] },
       { from: 'popup/popup.html', to: 'popup/popup.html', transform: transformHtml },
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
+      { from: 'scraping.js', to: 'scraping.js', },
+      { from: 'viewer/viewer.html', to: 'viewer/viewer.html', transform: transformHtml },
       {
         from: 'manifest.json',
         to: 'manifest.json',
