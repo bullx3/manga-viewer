@@ -14,8 +14,9 @@
           v-bind:key="index"
           v-bind:class="{ 'no-match-tr' : !image.isMatch}"
         >
-          <td v-if="image.filename !== null">{{image.filename}}</td>
-          <td v-else class="error">Error!!</td>
+          <td v-if="image.isBlank" class="error">No name</td>
+          <td v-else-if="!image.isValid" class="error">{{image.filename}}</td>
+          <td v-else >{{image.filename}}</td>
           <td v-if="image.isValid">{{image.width}}</td>
           <td v-else class="error"> - </td>
           <td v-if="image.isValid">{{image.height}}</td>

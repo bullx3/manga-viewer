@@ -1,7 +1,13 @@
 class ImageInfo{
   constructor(url){
     this.url = url;
-    this.filename = this.getFilename(url);
+    if(url){
+      this.isBlank = false;
+      this.filename = this.getFilename(url);
+    }else{
+      this.isBlank = true;
+      this.filename = "";
+    }
     this.width = 0;
     this.height = 0;
     this.isMatch = true; // フィルタ値に対してマッチしているか?
@@ -38,18 +44,6 @@ class ImageInfo{
     return (this.width >= width && this.height >= height) ? true : false;
   }
 
-  // toJson(){
-  //   return JSON.stringify(
-  //     {
-  //       url: this.url,
-  //       filename: this.filename,
-  //       width: this.width,
-  //       height: this.height,
-  //       isMatch: this.match,
-  //       isValid: this.isValid, 
-  //     }
-  //   );
-  // }
 }
 
 export default ImageInfo;

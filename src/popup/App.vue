@@ -4,21 +4,12 @@
     <hr>
     <FilterSetting
       v-bind:filter-config="config.filter"
-      v-on:action-change="actionChangeViewer"
-      v-on:action-initialize="actionInitializeConfig"
-      v-on:update-filter-setting-value="updateFilterSettingValue"
       ref="filterComponent"
     />
     <hr>
-    <p v-if="!isFinishAnalyze"> 解析中{{progress.index}} / {{progress.length}} 
-      <span v-if="progress.error > 0" class="error">(エラー {{progress.error}})</span>
-    </p>
-    <p v-else> 有効数 {{imageManager.matchCount}} / {{imageManager.imageCount}} 
-      <span v-if="imageManager.errorCount > 0" class="error">(エラー数 {{imageManager.errorCount}})</span>
-    </p>
-    <ImageListTable
-      v-bind:images="imageManager.images"
-    />
+    <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
+    <FilterResult v-else v-bind:image-manager="imageManager" />
+    <ImageListTable v-bind:images="imageManager.images" />
   </div>
 </template>
 
@@ -27,14 +18,25 @@ import Config from '../common/config'
 import {FilterConfig} from '../common/config'
 import ImageManager from '../common/image-manager'
 import FilterSetting from '../common/components/FilterSetting.vue'
+import FilterIndicator from '../common/components/FilterIndicator.vue'
+import FilterResult from '../common/components/FilterResult.vue'
 import ImageListTable from '../common/components/ImageListTable.vue'
 
 export default {
   components: {
     FilterSetting,
+    FilterResult,
+    FilterIndicator,
     ImageListTable,
   },
-  data () {
+  provide: function(){
+    return {
+      actionChangeViewer: this.actionChangeViewer,
+      actionInitializeConfig: this.actionInitializeConfig,
+      updateFilterSettingValue: this.updateFilterSettingValue,
+    }
+  },
+  data: function() {
     return {
       config: null,
       imageManager: null,
@@ -91,7 +93,7 @@ export default {
       console.log("complete analyze images");
     },
     actionChangeViewer: function(filter){
-      console.log("actionChangeViewer");
+      console.log("popup App actionChangeViewer");
       console.log(filter);
       this.config.saveFilter(filter);
 
@@ -105,18 +107,20 @@ export default {
       })();
     },
     actionInitializeConfig: function(){
-      console.log("actionInitializeConfig");
+      console.log("popup App actionInitializeConfig");
       let filter = new FilterConfig();
       filter.initialize();
       this.config.saveFilter(filter);
-      this.$refs.filterComponent.update();
+
+      // 子コンポーネントの表示内容を更新
+      this.updateFilterComponent();
 
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
     },
     updateFilterSettingValue: function(filter){
       // 子 -> 親通知.子コンポーネントからフィルタ設定の値が変更されたことを通知
-      console.log("updateFilterSettingValue");
+      console.log("popup App updateFilterSettingValue");
       this.config.filter.set(filter);
 
       // フィルタチェックを更新することでリスト表示を更新
@@ -126,7 +130,7 @@ export default {
     updateFilterComponent: function(){
       // 親 -> 子通知. 子コンポーネントのメソッドを実行して内容を更新
       this.$refs.filterComponent.update();
-    }
+    },
   },
 }
 </script>

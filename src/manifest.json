@@ -5,10 +5,12 @@
   "manifest_version": 2,
   "incognito" : "split",
   "icons": {
-    "48": "icons/icon_48.png",
-    "128": "icons/icon_128.png"
-  },
-  "permissions": [
+    "16": "icons/icon_16x16.png",
+    "32": "icons/icon_32x32.png",
+    "64": "icons/icon_64x64.png",
+    "128": "icons/icon_128x128.png"
+},
+"permissions": [
     "tabs",
     "contextMenus",
     "http://*/*",
@@ -21,7 +23,8 @@
   "background": {
     "scripts": [
       "background.js"
-    ]
+    ],
+    "persistent": false
   },
   "options_ui": {
     "page": "options/options.html",
@@ -30,15 +33,15 @@
   "commands": {
     "change_image_preview":{
         "suggested_key": {
-            "default": "Ctrl+Shift+M",
-            "mac": "Command+Shift+M"
+            "default": "Ctrl+Shift+O",
+            "mac": "Command+Shift+O"
         },
         "description": "Change MangaViewer"
     },
     "_execute_browser_action":{
         "suggested_key": {
-            "default": "Ctrl+Shift+K",
-            "mac": "Command+Shift+K"
+            "default": "Ctrl+Shift+L",
+            "mac": "Command+Shift+L"
         },
         "description": "View MangaViewer's popup"
     }

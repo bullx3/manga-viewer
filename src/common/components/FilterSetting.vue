@@ -8,7 +8,7 @@
       <input type="number" v-model="inputHeight" step="100" min="0" max="100000">
     </div>
     <div class="action">
-      <button v-on:click="changeViewer">変換</button>
+      <button v-on:click="changeViewer">ビュアー表示</button>
       <button v-on:click="initializeConfig">初期化</button>
     </div>
   </div>
@@ -20,8 +20,12 @@ import {FilterConfig} from "../config"
 
 export default {
   props: ['filterConfig'],
-  data () {
-    console.log("FillterSetting access data");
+  inject: [
+    'actionChangeViewer',
+    'actionInitializeConfig',
+    'updateFilterSettingValue',
+  ],
+  data: function() {
     return {
       filterCheck: this.filterConfig.check,
       inputWidth: this.filterConfig.width,
@@ -30,26 +34,30 @@ export default {
   },
   methods: {
     changeViewer: function(){
-      console.log("changeViewer");
+      console.log("FilterSetting changeViewer");
       let filter = new FilterConfig();
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
-      this.$emit("action-change", filter);
+
+      // injection method exec
+      this.actionChangeViewer(filter);
     },
     initializeConfig: function(){
-      console.log("initializeConfig");
-      this.$emit("action-initialize");
+      console.log("FilterSetting  initializeConfig");
+
+      // injection method exec
+      this.actionInitializeConfig();
     },
-    update(){
-      console.log("FilterSetting update()");
+    update: function(){
+      console.log("FilterSetting update");
       this.filterCheck = this.filterConfig.check;
       this.inputWidth = this.filterConfig.width;
       this.inputHeight = this.filterConfig.height;
     },
-    notifyChanged(){
-      console.log("NotifyChanged");
+    notifyChanged: function(){
+      console.log("FilterSetting NotifyChanged");
       let filter = new FilterConfig();
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
-      this.$emit("update-filter-setting-value", filter);
+      this.updateFilterSettingValue(filter);
     },
   },
   watch: {
@@ -62,6 +70,10 @@ export default {
 
 <style lang="scss" scoped>
 
+* {
+  margin: 0;
+  padding: 0;
+}
 .input-filter {
   margin: 5px 0;
 

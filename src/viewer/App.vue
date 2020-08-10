@@ -1,29 +1,58 @@
 <template>
   <div>
-    <p>{{ title }}</p>
-    <p v-if="!isFinishAnalyze"> 解析中{{progress.index}} / {{progress.length}} 
-      <span v-if="progress.error > 0" class="error">(エラー {{progress.error}})</span>
-    </p>
-    <p v-else> 有効数 {{imageManager.matchCount}} / {{imageManager.imageCount}} 
-      <span v-if="imageManager.errorCount > 0" class="error">(エラー数 {{imageManager.errorCount}})</span>
-    </p>
-
-    <img
-      v-for="(image, index) in imageManager.images"
-      v-bind:key="index"
-      v-bind:src="image.url"
-      width="10%" height="10%"
-    />
+    <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
+    <div v-else>
+      <div class="viewer-menu">
+        <ul>
+          <li>
+            <p>
+              {{totalPage === 0 ? 0 : currentPage+1}} / {{totalPage}} p
+              ({{imageManager.imageCount}}枚中{{imageManager.matchCount}}枚有効
+              <span v-if="imageManager.errorCount > 0" class="error">(エラー {{imageManager.errorCount}})</span>)
+            </p>
+          </li>
+          <li><p>{{ title }}</p></li>
+          <li><button v-on:click="openMenuDialog">Menu</button></li>
+        </ul>
+      </div>
+      <ViewerMain
+        v-bind:key="viewerMainReRenderingKey"
+        v-bind:images="imageManager.filterImages"
+        v-on:action-change-page="actionChangePage"
+      />
+      <MenuDialog
+        v-if="isMenuDialogShow"
+        v-bind:key="menuDialogReRenderingKey"
+        v-bind:config="config"
+        v-bind:image-manager="imageManager"
+        v-on:close-dialog="closeMenuDialog"
+      />
+    </div>
   </div>
 </template>
 
 <script>
 import Config from '../common/config'
-import {FilterConfig} from '../common/config'
 import ImageManager from '../common/image-manager'
+import {FilterConfig} from '../common/config'
+import ViewerMain from './components/ViewerMain.vue'
+import MenuDialog from './components/MenuDialog.vue'
+import FilterIndicator from '../common/components/FilterIndicator'
 
 export default {
-  data () {
+  provide: function(){
+    return {
+      actionChangeViewer: this.actionChangeViewer,
+      actionInitializeConfig: this.actionInitializeConfig,
+      updateFilterSettingValue: this.updateFilterSettingValue,
+    }
+  },
+  components: {
+    ViewerMain,
+    MenuDialog,
+    FilterIndicator,
+  },
+  data: function() {
     return {
       config: null,
       title: "",
@@ -34,16 +63,32 @@ export default {
         length: 0,
         error: 0,
       },
+      currentPage: 0,
+      totalPage: 0,
+      isMenuDialogShow: false,
+      viewerMainKeyValue: 0,
+      menuDialogKeyValue: 0,
     }
   },
+  computed: {
+    viewerMainReRenderingKey: function(){
+      return "viewerMainkey" + this.viewerMainKeyValue;
+    },
+    menuDialogReRenderingKey: function(){
+      return "menuDialogKey" + this.menuDialogKeyValue;
+    },
+  },
   created: function() {
+    console.log("Viewer App created");
+
     this.config = new Config();
     this.imageManager = new ImageManager();
 
     let param = JSON.parse(localStorage["viewerParam"]);
     this.title = param.title;
 
-// 設定取得
+    document.title = `[解析中]${this.title}`;
+
     (async () => {
       await this.config.loadFilter();
       console.log("complete LoadFilter");
@@ -55,14 +100,13 @@ export default {
       this.imageManager.updateFilterCheck(this.config.filter);
 
       this.isFinishAnalyze = true;
+
+      document.title = `[Viewer]${this.title}`;
     })();
-
-
   },
   methods: {
-    async analyzeImage(param){
-      let scrapingImages = param.images;
-      scrapingImages.forEach((data) => this.imageManager.append(data.url));
+    analyzeImage: async function(param){
+      param.images.forEach((data) => this.imageManager.append(data.url));
 
       console.log("start analyze images")
       // 画像サイズを解析
@@ -71,17 +115,81 @@ export default {
         this.progress.index = index;
         this.progress.length = length;
         this.progress.error += result ? 0 : 1;
+        document.title = `[解析中](${index}/${length}) ${this.title}`;
       });
       console.log("complete analyze images");
+    },
+    actionChangePage: function(page){
+      this.currentPage = page.current;
+      this.totalPage = page.total;
+    },
+    openMenuDialog: function(){
+      console.log("Viewer App openMenuDialog");
+      this.isMenuDialogShow = true;
+    },
+    closeMenuDialog: function(){
+      console.log("Viewer App closeMenuDialog");
+      this.isMenuDialogShow = false;
+    },
+    // provivide関数
+    actionChangeViewer: function(filter){
+      console.log("viewer App actionChangeViewer");
+      console.log(filter);
 
+      // 設定保存
+      this.config.saveFilter(filter);
 
-    }
-  },
+      // ダイアログを消して画面を再構築
+      this.closeMenuDialog();
+      this.reRenderingViewerMain();
+    },
+    actionInitializeConfig: function(){
+      console.log("viewer App actionInitializeConfig");
+      let filter = new FilterConfig();
+      filter.initialize();
+      this.config.saveFilter(filter);
+      // this.$refs.filterComponent.update();
+      // 子(孫)のinputの内容を再レンダリング
+      this.reRenderingMenuDialog();
+      // フィルタチェックを更新することでリスト表示を更新
+      this.imageManager.updateFilterCheck(this.config.filter);
+    },
+    updateFilterSettingValue: function(filter){
+      // 子 -> 親通知.子コンポーネントからフィルタ設定の値が変更されたことを通知
+      console.log("viewer App updateFilterSettingValue");
+      this.config.filter.set(filter);
+
+      // フィルタチェックを更新することでリスト表示を更新
+      this.imageManager.updateFilterCheck(this.config.filter);
+    },
+    reRenderingViewerMain: function(){
+      // keyを更新することで強制的に再描画
+      // this.viewerMainReRenderingKey = !this.viewerMainReRenderingKey;
+      this.viewerMainKeyValue++;
+    },
+    reRenderingMenuDialog: function(){
+      // this.menuDialogReRenderingKey = !this.menuDialogReRenderingKey;
+      this.menuDialogKeyValue++;
+    },
+},
 }
 </script>
 
 <style lang="scss" scoped>
-p {
-  font-size: 1.5em;
+
+.viewer-menu {
+  position: absolute;
+  z-index: 200;
+  top: 0;
+  left: 0;
+  margin: 2px 5px;
+  padding: 2px 5px;
+  opacity: 0.5;
+  color: cornflowerblue;
 }
+
+.error {
+  color: red;
+}
+
 </style>
