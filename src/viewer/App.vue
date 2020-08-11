@@ -23,10 +23,10 @@
       />
       <MenuDialog
         v-if="isMenuDialogShow"
-        v-bind:key="menuDialogReRenderingKey"
         v-bind:config="config"
         v-bind:image-manager="imageManager"
         v-on:close-dialog="closeMenuDialog"
+        ref="menuDialog"
       />
     </div>
   </div>
@@ -69,13 +69,7 @@ export default {
       currentPage: 0,
       totalPage: 0,
       isMenuDialogShow: false,
-      menuDialogKeyValue: 0,
     }
-  },
-  computed: {
-    menuDialogReRenderingKey: function(){
-      return "menuDialogKey" + this.menuDialogKeyValue;
-    },
   },
   created: function() {
     console.log("Viewer App created");
@@ -152,9 +146,8 @@ export default {
       let filter = new FilterConfig();
       filter.initialize();
       this.config.saveFilter(filter);
-      // this.$refs.filterComponent.update();
-      // 子(孫)のinputの内容を再レンダリング
-      this.reRenderingMenuDialog();
+      // フィルタ設定画面を更新
+      this.$refs.menuDialog.updateFilterSetting();
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
     },
@@ -171,10 +164,6 @@ export default {
       this.filterImages = this.imageManager.filterImages;
       console.log(this.filterImages);
 
-    },
-    reRenderingMenuDialog: function(){
-      // this.menuDialogReRenderingKey = !this.menuDialogReRenderingKey;
-      this.menuDialogKeyValue++;
     },
   },
 }
