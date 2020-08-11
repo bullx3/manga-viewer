@@ -22,10 +22,10 @@ export default {
   },
   props: {
     images: Array,
+    numberOfPage: Number,
   },
   data: function() {
     return {
-      numberOfPage: 2,
       viewPages: [],
       currentPage: 0,
 
@@ -35,35 +35,17 @@ export default {
   },
   watch: {
     currentPage: function(){
+      console.log("watch currentPage");
       this.notifyChangePage();
+    },
+    images: function(){
+      console.log("watch images");
+      this.rebuildViewPages();
     }
   },
   created: function(){
     console.log("ViewerMain created");
-
-    let blank = new ImageInfo();
-    let len = this.images.length;
-    for(var i = 0; i < len; i += this.numberOfPage){
-      let pageImages = [];
-      for(var j = 0; j < this.numberOfPage; j++){
-        if((i + j) < len){
-          pageImages.push(this.images[i+j]);
-        }else{
-          pageImages.push(blank);
-        }
-      }
-      this.viewPages.push({show: false, images: pageImages});
-    }
-    // 1ページ目のみ表示
-    if(this.viewPages.length > 0){
-      this.viewPages[0].show = true;
-    }
-
-    // 初期値を与える為に親コンポーネントに通知
-    this.notifyChangePage();
-
-    console.log(this.viewPages);
-    console.log("ViewerMain created end");
+    this.rebuildViewPages();
   },
   mounted: function(){
     console.log("ViewerMain mounted");
@@ -82,6 +64,9 @@ export default {
       // 親コンポーネントに通知
       this.$emit("action-change-page", {current: this.currentPage, total: this.viewPages.length});
     },
+    notifyChangeNumberOfPage: function(num){
+      this.$emit("action-change-number-of-page", num);
+    },
     onResize: function(){
       // 画面サイズ変更
       console.log("onResize", window.innerWidth, window.innerHeight);
@@ -92,7 +77,6 @@ export default {
       let keyName = event.key;
 
       switch(keyName){
-        case "ArrowDown":
         case "ArrowLeft":
           if(this.currentPage < this.viewPages.length - 1 ){
             this.viewPages[this.currentPage].show = false;
@@ -100,7 +84,6 @@ export default {
             this.currentPage++;
           }
           break;
-        case "ArrowUp":
         case "ArrowRight":
           if(this.currentPage > 0){
             this.viewPages[this.currentPage].show = false;
@@ -108,7 +91,68 @@ export default {
             this.currentPage--;
           }
           break;
+        case "ArrowDown":
+          // 1枚だけ進む
+          break;
+        case "ArrowUp":
+          // 1枚だけ戻る
+          break;
+        case "n":
+          let currentNum = this.numberOfPage;
+          let newNum = currentNum === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
+
+          // 再構築
+          this.changeNumberOfPage(currentNum, newNum);
+
+          // 親に変更通知
+          this.notifyChangeNumberOfPage(newNum);
+          this.notifyChangePage();
+          break;
       }
+    },
+    createViewPages: function(images, numberOfPage){
+
+      let pages = [];
+      let blank = new ImageInfo();
+      let len = images.length;
+      for(var i = 0; i < len; i += numberOfPage){
+        let pageImages = [];
+        for(var j = 0; j < numberOfPage; j++){
+          if((i + j) < len){
+            pageImages.push(images[i+j]);
+          }else{
+            pageImages.push(blank);
+          }
+        }
+        pages.push({show: false, images: pageImages});
+      }
+      console.log(pages);
+      return pages;
+    },
+    changeNumberOfPage: function(currentNum, newNum){
+      
+      console.log(`changeNumberOfPage(${currentNum}->${newNum})`)
+
+      if(currentNum < newNum){
+        this.currentPage = Math.floor(this.currentPage * currentNum / newNum);
+      }else{
+        this.currentPage = this.currentPage * (currentNum / newNum);
+      }
+
+      this.viewPages = this.createViewPages(this.images, newNum);
+      if(this.viewPages.length > 0){
+        this.viewPages[this.currentPage].show = true;
+      }
+    },
+    rebuildViewPages: function(){
+      console.log("ViewerMain rebuildViewPages");
+      // viewPagesを更新することで最新の情報で再描画を行う
+      this.currentPage = 0;
+      this.viewPages = this.createViewPages(this.images, this.numberOfPage);
+      if(this.viewPages.length > 0){
+        this.viewPages[this.currentPage].show = true;
+      }
+      this.notifyChangePage();
     },
   }
 }

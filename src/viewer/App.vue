@@ -16,9 +16,10 @@
         </ul>
       </div>
       <ViewerMain
-        v-bind:key="viewerMainReRenderingKey"
-        v-bind:images="imageManager.filterImages"
+        v-bind:images="filterImages"
+        v-bind:number-of-page="numberOfPage"
         v-on:action-change-page="actionChangePage"
+        v-on:action-change-number-of-page="actionChangeNumberOfPage"
       />
       <MenuDialog
         v-if="isMenuDialogShow"
@@ -55,8 +56,10 @@ export default {
   data: function() {
     return {
       config: null,
+      numberOfPage: 2,
       title: "",
       imageManager: null,
+      filterImages: [],
       isFinishAnalyze: false,
       progress: {
         index: 0,
@@ -66,14 +69,10 @@ export default {
       currentPage: 0,
       totalPage: 0,
       isMenuDialogShow: false,
-      viewerMainKeyValue: 0,
       menuDialogKeyValue: 0,
     }
   },
   computed: {
-    viewerMainReRenderingKey: function(){
-      return "viewerMainkey" + this.viewerMainKeyValue;
-    },
     menuDialogReRenderingKey: function(){
       return "menuDialogKey" + this.menuDialogKeyValue;
     },
@@ -99,6 +98,8 @@ export default {
       // フィルタ設定による情報更新
       this.imageManager.updateFilterCheck(this.config.filter);
 
+      this.filterImages = this.imageManager.filterImages;
+
       this.isFinishAnalyze = true;
 
       document.title = `[Viewer]${this.title}`;
@@ -122,6 +123,9 @@ export default {
     actionChangePage: function(page){
       this.currentPage = page.current;
       this.totalPage = page.total;
+    },
+    actionChangeNumberOfPage: function(num){
+      this.numberOfPage = num;
     },
     openMenuDialog: function(){
       console.log("Viewer App openMenuDialog");
@@ -163,15 +167,16 @@ export default {
       this.imageManager.updateFilterCheck(this.config.filter);
     },
     reRenderingViewerMain: function(){
-      // keyを更新することで強制的に再描画
-      // this.viewerMainReRenderingKey = !this.viewerMainReRenderingKey;
-      this.viewerMainKeyValue++;
+      console.log("reRenderingViewerMain");
+      this.filterImages = this.imageManager.filterImages;
+      console.log(this.filterImages);
+
     },
     reRenderingMenuDialog: function(){
       // this.menuDialogReRenderingKey = !this.menuDialogReRenderingKey;
       this.menuDialogKeyValue++;
     },
-},
+  },
 }
 </script>
 
