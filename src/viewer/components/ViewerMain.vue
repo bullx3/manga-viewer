@@ -81,6 +81,7 @@ export default {
     onKeyDown: function(){
       let keyName = event.key;
       console.debug("ViewrMain onKeyDown", keyName);
+      console.debug("currentImagePage", this.currentImagePage, "currentPage", this.currentPage, "beforeBlank", this.beforeBlank);
 
       switch(keyName){
         case "ArrowLeft":
@@ -89,6 +90,9 @@ export default {
             this.viewPages[this.currentPage].show = false;
             this.viewPages[this.currentPage+1].show = true;
             this.currentImagePage += this.numberOfPage;
+            if(this.currentImagePage > this.images.length - 1){
+              this.currentImagePage = this.images.length - 1;
+            }
           }
           break;
         case "ArrowRight":
@@ -97,6 +101,12 @@ export default {
             this.viewPages[this.currentPage].show = false;
             this.viewPages[this.currentPage-1].show = true;
             this.currentImagePage -= this.numberOfPage;
+            if(this.currentImagePage < 0){
+              this.beforeBlank = 0;
+              this.viewPages = this.createViewPagesWithBeforeBlank(this.images, this.numberOfPage, 0);
+              this.currentImagePage = 0;
+              this.viewPages[0].show = true;
+            }
           }
           break
         case "ArrowDown":
@@ -165,7 +175,7 @@ export default {
               // before blank
               pageImages.push({index: null , imageInfo: blank});
             }else{
-              pageImages.push({index: index , imageInfo: tempImages[index]});
+              pageImages.push({index: index , imageInfo: tempImages[i+j]});
             }
           }else{
             // after blank
@@ -175,6 +185,11 @@ export default {
         pages.push({show: false, pageImages: pageImages});
       }
       console.debug(pages);
+      // pages.forEach((page) => {
+      //   page.pageImages.forEach((pageImage) => {
+      //     console.debug("pageImage", "index", pageImage.index, pageImage.imageInfo.isBlank, pageImage.imageInfo.filename);
+      //   });
+      // });
       return pages;
     },
     changeNumberOfPage: function(newNum){
