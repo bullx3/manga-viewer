@@ -7,7 +7,7 @@
           <li>
             <p>
               {{totalPage === 0 ? 0 : currentPage+1}} / {{totalPage}} p
-              ({{imageManager.imageCount}}枚中{{imageManager.matchCount}}枚有効
+              ({{imageManager.imageCount}}
               <span v-if="imageManager.errorCount > 0" class="error">(エラー {{imageManager.errorCount}})</span>)
             </p>
           </li>

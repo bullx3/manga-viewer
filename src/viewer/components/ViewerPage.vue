@@ -2,7 +2,8 @@
   <div v-if="numberOfPage===1" class="view-page">
     <div class="image-wrap-center" v-bind:style="styleObjectImageWrap">
       <ViewerPageImage
-        v-bind:image="images[0]"
+        v-bind:page-index="pageImages[0].index"
+        v-bind:image-info="pageImages[0].imageInfo"
         v-bind:rap-width="rapWidth"
         v-bind:rap-height="rapHeight"
       />
@@ -12,14 +13,16 @@
   <div v-else-if="numberOfPage===2" class="view-page">
     <div class="image-wrap-left" v-bind:style="styleObjectImageWrap">
       <ViewerPageImage
-        v-bind:image="images[1]"
+        v-bind:page-index="pageImages[1].index"
+        v-bind:image-info="pageImages[1].imageInfo"
         v-bind:rap-width="rapWidth"
         v-bind:rap-height="rapHeight"
       />
     </div>
     <div class="image-wrap-right" v-bind:style="styleObjectImageWrap">
       <ViewerPageImage
-        v-bind:image="images[0]"
+        v-bind:page-index="pageImages[0].index"
+        v-bind:image-info="pageImages[0].imageInfo"
         v-bind:rap-width="rapWidth"
         v-bind:rap-height="rapHeight"
       />
@@ -37,7 +40,7 @@ export default {
   },
   props: {
     numberOfPage: Number,
-    images: Array,
+    pageImages: Array,
     pageWidth: Number,
     pageHeight: Number,
   },
