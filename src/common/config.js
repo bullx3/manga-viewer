@@ -18,11 +18,10 @@ class FilterConfig {
   initialize(){
     this.setFilter(DEFAULT_FILTER_CHECK, DEFAULT_FILTER_WIDTH, DEFAULT_FILTER_HEIGHT);
   }
-  toJson(){
-    return JSON.stringify({check: this.check, width: this.width, height: this.height});
+  toObject(){
+    return {check: this.check, width: this.width, height: this.height};
   }
-  fromJson(json){
-    let obj = JSON.parse(json);
+  fromObject(obj){
     this.setFilter(obj.check, obj.width, obj.height);
   }
 }
@@ -35,31 +34,22 @@ class Config {
   }
 
   async saveFilter(filter){
-    return new Promise((resolve, reject) => {
-      this.filter.set(filter);
-      setTimeout(()=>{
-        localStorage["fiterConfig"] = filter.toJson();
-        resolve();
-      },10);
-    });
+    console.debug("saveFilter start");
+    await browser.storage.local.set({filterConfig: filter.toObject()});
+    console.debug("saveFilter complete");
   }
 
   async loadFilter(){
-    return new Promise((resolve, reject) => {
-      setTimeout(()=>{
-        let loadConfig = localStorage["fiterConfig"];
-        console.log("loadFilter:" + loadConfig);
-        if(loadConfig == null){
-          this.filter.initialize();
-          // ストレージ更新
-          this.saveFilter(this.filter);
-        }else{
-          this.filter.fromJson(loadConfig);
-        }
-        resolve();
-      },10);
-    });
-
+    let loadFilter = await browser.storage.local.get("filterConfig");
+    console.debug("load filter",loadFilter);
+    if(!loadFilter.filterConfig){
+      // 初期状態で設定が保存されていない
+      console.log("Don't exist filter setting");
+      this.filter.initialize();
+      await this.saveFilter(this.filter);
+    }else{
+      this.filter.fromObject(loadFilter.filterConfig);
+    }
   }
 }
 
