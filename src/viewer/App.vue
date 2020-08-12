@@ -123,7 +123,10 @@ export default {
     },
     openMenuDialog: function(){
       console.log("Viewer App openMenuDialog");
-      this.isMenuDialogShow = true;
+      (async () => {
+        await this.config.loadFilter();
+        this.isMenuDialogShow = true;
+      })();
     },
     closeMenuDialog: function(){
       console.log("Viewer App closeMenuDialog");
