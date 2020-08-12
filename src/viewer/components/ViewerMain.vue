@@ -28,14 +28,14 @@ export default {
     return {
       viewPages: [],
       currentPage: 0,
-
       pageWidth: window.innerWidth,
       pageHeight: window.innerHeight,
+      beforeBlank: 0,
     }
   },
   watch: {
     currentPage: function(){
-      console.log("watch currentPage");
+      console.log("watch currentPage", this.currentPage);
       this.notifyChangePage();
     },
     images: function(){
@@ -76,38 +76,74 @@ export default {
     onKeyDown: function(){
       let keyName = event.key;
 
-      switch(keyName){
-        case "ArrowLeft":
-          if(this.currentPage < this.viewPages.length - 1 ){
-            this.viewPages[this.currentPage].show = false;
-            this.viewPages[this.currentPage+1].show = true;
-            this.currentPage++;
+      if(  (keyName === "ArrowLeft")
+        || (keyName === "ArrowDown" && this.numberOfPage === 1)){
+        // 1ページ進む
+        if(this.currentPage < this.viewPages.length - 1 ){
+          this.viewPages[this.currentPage].show = false;
+          this.viewPages[this.currentPage+1].show = true;
+          this.currentPage++;
+        }
+      }else if((keyName === "ArrowRight")
+            || (keyName === "ArrowUp" && this.numberOfPage === 1)){
+        if(this.currentPage > 0){
+          // 1ページ戻る
+          this.viewPages[this.currentPage].show = false;
+          this.viewPages[this.currentPage-1].show = true;
+          this.currentPage--;
+        }
+      }else if(keyName === "ArrowDown"){
+        // 一枚進む
+        console.log("key ArrowDown");
+
+        if((this.currentPage * 2 + 1) < this.images.length){
+
+          if(this.beforeBlank === 0){
+            this.viewPages = this.createViewPagesBeforeBlank(this.images, this.numberOfPage);
+
+            this.beforeBlank++;
+            if(this.currentPage < this.viewPages.length - 1){
+              this.currentPage++;
+            }
+          }else{
+            this.viewPages = this.createViewPages(this.images, this.numberOfPage);
+            this.beforeBlank = 0;
           }
-          break;
-        case "ArrowRight":
+
+          if(this.viewPages.length > 0){
+            this.viewPages[this.currentPage].show = true;
+          }
+        }
+      }else if(keyName === "ArrowUp"){
+        // 一枚戻る
+        console.log("key ArrowUp");
+        if(this.beforeBlank === 0){
           if(this.currentPage > 0){
-            this.viewPages[this.currentPage].show = false;
-            this.viewPages[this.currentPage-1].show = true;
+            this.viewPages = this.createViewPagesBeforeBlank(this.images, this.numberOfPage);
+            this.beforeBlank++;
+          }
+        }else{
+          this.viewPages = this.createViewPages(this.images, this.numberOfPage);
+          this.beforeBlank = 0;
+          if(this.currentPage > 0){ // ユースケース上この判定がfalseになることはない
             this.currentPage--;
           }
-          break;
-        case "ArrowDown":
-          // 1枚だけ進む
-          break;
-        case "ArrowUp":
-          // 1枚だけ戻る
-          break;
-        case "n":
-          let currentNum = this.numberOfPage;
-          let newNum = currentNum === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
+        }
 
-          // 再構築
-          this.changeNumberOfPage(currentNum, newNum);
+        if(this.viewPages.length > 0){
+          this.viewPages[this.currentPage].show = true;
+        }
 
-          // 親に変更通知
-          this.notifyChangeNumberOfPage(newNum);
-          this.notifyChangePage();
-          break;
+      }else if(keyName === 'n'){
+        let currentNum = this.numberOfPage;
+        let newNum = currentNum === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
+
+        // 再構築
+        this.changeNumberOfPage(currentNum, newNum);
+
+        // 親に変更通知
+        this.notifyChangeNumberOfPage(newNum);
+        this.notifyChangePage();
       }
     },
     createViewPages: function(images, numberOfPage){
@@ -120,6 +156,25 @@ export default {
         for(var j = 0; j < numberOfPage; j++){
           if((i + j) < len){
             pageImages.push(images[i+j]);
+          }else{
+            pageImages.push(blank);
+          }
+        }
+        pages.push({show: false, images: pageImages});
+      }
+      console.log(pages);
+      return pages;
+    },
+    createViewPagesBeforeBlank(images, numberOfPage){
+      let pages = [];
+      let blank = new ImageInfo();
+      let tempImages = [blank].concat(images);
+      let len = tempImages.length;
+      for(var i = 0; i < len; i += numberOfPage){
+        let pageImages = [];
+        for(var j = 0; j < numberOfPage; j++){
+          if((i + j) < len){
+            pageImages.push(tempImages[i+j]);
           }else{
             pageImages.push(blank);
           }
