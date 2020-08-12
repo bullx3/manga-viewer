@@ -18,7 +18,9 @@ export default {
     styleObject: function(){
       let scale_horizon = this.rapWidth / this.imageInfo.width;
       let scale_vertical = this.rapHeight / this.imageInfo.height;
-      return scale_horizon < scale_vertical ? {width: this.rapWidth + "px"} : {height: this.rapHeight + "px"};
+      return scale_horizon < scale_vertical
+       ? {width: this.rapWidth + "px", "margin-top": Math.floor((this.rapHeight - scale_horizon * this.imageInfo.height) / 2) + "px"}
+       : {height: this.rapHeight + "px"};
     },
   }
 }
@@ -29,6 +31,8 @@ export default {
 
 .img-area{
   position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .img-page {
