@@ -3,19 +3,18 @@
     <p>{{title}}</p>
     <hr>
     <FilterSetting
-      v-bind:filter-config="config.filter"
-      ref="filterComponent"
+      v-bind:filter-config="filterConfig"
     />
     <hr>
     <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
-    <FilterResult v-else v-bind:image-manager="imageManager" />
+    <FilterResult v-else v-bind:filtering-result="filteringResult" />
     <ImageListTable v-bind:images="imageManager.images" />
   </div>
 </template>
 
 <script>
 import Config from '../common/config'
-import {FilterConfig} from '../common/config'
+// import {FilterConfig} from '../common/config'
 import ImageManager from '../common/image-manager'
 import FilterSetting from '../common/components/FilterSetting.vue'
 import FilterIndicator from '../common/components/FilterIndicator.vue'
@@ -41,6 +40,23 @@ export default {
       config: null,
       imageManager: null,
       isFinishAnalyze: false,
+      filterConfig: { // リアクティブによる更新により入力画面が更新される
+        check: true,
+        width: 0,
+        height: 0,
+      },
+      viewConfig: {
+        numberOfPage: 2,
+        isShowTitle: true,
+        isShowImageSize: true,
+        isShowImagePage: true,
+      },
+      filteringResult: {
+        images: [],
+        matchCount: 0, // フィルタに一致した画像数
+        totalCount: 0, // フィルタリングする前の画像数
+        errorCount: 0, // 解析失敗した画像数
+      },
       progress: {
         index: 0,
         length: 0,
@@ -56,21 +72,25 @@ export default {
 
     // 設定取得
     (async () => {
-      await this.config.loadFilter();
-      console.log("complete LoadFilter");
-      this.updateFilterComponent();
+      await this.config.load();
+
       //画像タグ取得 & 解析
       await this.scrapingAndAnalyzeImage();
 
+      this.updateFilterSetting();
+
       // フィルタ設定による情報更新
       this.imageManager.updateFilterCheck(this.config.filter);
+
+      // 画像リスト更新
+      this.updateImageList();
 
       this.isFinishAnalyze = true;
 
     })();
   },
   methods: {
-    async scrapingAndAnalyzeImage(){
+    scrapingAndAnalyzeImage: async function(){
       console.log("start scraping");
       // メインページから画像タグデータを取得(非同期)
       let result = await browser.tabs.executeScript(null, {file: "/scraping.js"})
@@ -95,11 +115,11 @@ export default {
     actionChangeViewer: function(filter){
       console.log("popup App actionChangeViewer");
       console.log(filter);
-      this.config.saveFilter(filter);
+      this.config.filter = filter;
+      this.config.filter.save();
 
       // viewerに遷移
       (async () => {
-        let obj = {};
         let result = await browser.tabs.executeScript(null, {file: "/scraping.js"})
         localStorage["viewerParam"] = JSON.stringify(result[0]);
         await browser.tabs.update({"url": "/viewer/viewer.html"})
@@ -108,28 +128,36 @@ export default {
     },
     actionInitializeConfig: function(){
       console.log("popup App actionInitializeConfig");
-      let filter = new FilterConfig();
-      filter.initialize();
-      this.config.saveFilter(filter);
+      this.config.filter.initialize();
+      this.config.filter.save();
 
       // 子コンポーネントの表示内容を更新
-      this.updateFilterComponent();
-
+      this.updateFilterSetting();
+      
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
+
+      this.updateImageList();
     },
     updateFilterSettingValue: function(filter){
       // 子 -> 親通知.子コンポーネントからフィルタ設定の値が変更されたことを通知
       console.log("popup App updateFilterSettingValue");
-      this.config.filter.set(filter);
+      this.config.filter = filter;
 
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
-
     },
-    updateFilterComponent: function(){
-      // 親 -> 子通知. 子コンポーネントのメソッドを実行して内容を更新
-      this.$refs.filterComponent.update();
+    updateFilterSetting: function(){
+      this.filterConfig = this.config.filter.toObject();
+      this.viewConfig = this.config.view.toObject();
+    },
+    updateImageList: function() {
+      this.filteringResult = {
+        images: this.imageManager.filterImages,
+        matchCount: this.imageManager.matchCount,
+        totalCount: this.imageManager.imageCount,
+        errorCount: this.imageManager.errorCount,
+      }
     },
   },
 }

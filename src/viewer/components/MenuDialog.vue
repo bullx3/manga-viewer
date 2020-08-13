@@ -6,12 +6,12 @@
           <h3>Menu</h3>
           <button class="btn-close-dialog" v-on:click="$emit('close-dialog')">x</button>
           <FilterSetting
-            v-bind:filter-config="config.filter"
+            v-bind:filter-config="filterConfig"
             ref="filterSetting"
           />
           <hr>
-          <FilterResult v-bind:image-manager="imageManager" />
-          <ImageListTable v-bind:images="imageManager.images" />
+          <FilterResult v-bind:filtering-result="filteringResult" />
+          <ImageListTable v-bind:images="images" />
         </div>
       </div>
     </div>
@@ -30,8 +30,9 @@ export default {
     ImageListTable,
   },
   props: {
-    config: Object,
-    imageManager: Object,
+    images: Array,
+    filteringResult: Object,
+    filterConfig: Object,
   },
   methods: {
     updateFilterSetting: function(){

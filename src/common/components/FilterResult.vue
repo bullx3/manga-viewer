@@ -1,8 +1,8 @@
 <template>
   <p>
-    有効数 {{imageManager.matchCount}} / {{imageManager.imageCount}} 
-    <span v-if="imageManager.errorCount > 0" class="error">
-      (エラー{{imageManager.errorCount}})
+    有効数 {{filteringResult.matchCount}} / {{filteringResult.totalCount}} 
+    <span v-if="filteringResult.errorCount > 0" class="error">
+      (エラー{{filteringResult.errorCount}})
     </span>
   </p>
 </template>
@@ -10,7 +10,7 @@
 <script>
 export default {
   props: {
-    imageManager: Object,
+    filteringResult: Object,
   }
 }
 </script>

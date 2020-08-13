@@ -34,7 +34,7 @@ export default {
   },
   methods: {
     changeViewer: function(){
-      console.log("FilterSetting changeViewer");
+      console.debug("FilterSetting changeViewer", this.filterCheck, this.inputWidth, this.inputHeight);
       let filter = new FilterConfig();
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
 
@@ -54,7 +54,7 @@ export default {
       this.inputHeight = this.filterConfig.height;
     },
     notifyChanged: function(){
-      console.log("FilterSetting NotifyChanged");
+      console.debug("FilterSetting NotifyChanged", this.filterCheck, this.inputWidth, this.inputHeight);
       let filter = new FilterConfig();
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
       this.updateFilterSettingValue(filter);
@@ -64,6 +64,11 @@ export default {
     filterCheck: function(){this.notifyChanged()},
     inputWidth: function(){this.notifyChanged()},
     inputHeight: function(){this.notifyChanged()},
+    filterConfig: function(){
+      this.filterCheck = this.filterConfig.check;
+      this.inputWidth = this.filterConfig.width;
+      this.inputHeight = this.filterConfig.height;
+    }
   }
 }
 </script>

@@ -1,5 +1,25 @@
 <template>
   <div>
+    <div class="viewer-menu">
+      <ul>
+        <li>
+          <p>
+            {{filteringResult.matchCount === 0 ? 0 : currentImagePage+1}} / {{filteringResult.matchCount}} p
+            ({{filteringResult.totalCount}}
+            <span v-if="filteringResult.errorCount > 0" class="error">(エラー {{filteringResult.errorCount}})</span>)
+          </p>
+        </li>
+        <li><p>{{ title }}</p></li>
+        <li><button v-on:click="loadAndOpenMenuDialog">Menu</button></li>
+      </ul>
+    </div>
+    <MenuDialog
+      v-if="isMenuDialogShow"
+      v-bind:filter-config="filterConfig"
+      v-bind:images="images"
+      v-bind:filtering-result="filteringResult"
+      v-on:close-dialog="closeMenuDialog"
+    />
     <ViewerPage
       v-for="(viewPage, index) in viewPages"
       v-bind:key="index"
@@ -15,14 +35,22 @@
 <script>
 import ImageInfo from '../../common/image-info'
 import ViewerPage from './ViewerPage.vue'
+import MenuDialog from './MenuDialog.vue'
 
 export default {
   components: {
     ViewerPage,
+    MenuDialog,
   },
+  inject:[
+    "loadConfig",
+  ],
   props: {
-    images: Array,
+    images: Array,  // フィルタリングされていない(判定はされている)ImageManagerの配列
     numberOfPage: Number,
+    title: String,
+    filterConfig: Object,
+    filteringResult: Object,
   },
   data: function() {
     return {
@@ -31,6 +59,9 @@ export default {
       pageWidth: window.innerWidth,
       pageHeight: window.innerHeight,
       beforeBlank: 0,
+      // currentPage: 0,
+      // totalPage: 0,
+      isMenuDialogShow: false,
     }
   },
   computed: {
@@ -39,12 +70,8 @@ export default {
     }
   },
   watch: {
-    currentImagePage: function(){
-      console.debug("watch currentImagePage", this.currentImagePage, this.currentPage);
-      this.notifyChangePage();
-    },
-    images: function(){
-      console.debug("watch images");
+    filteringResult: function(){
+      console.debug("watch filteringResult");
       this.rebuildViewPages();
     }
   },
@@ -65,12 +92,24 @@ export default {
     window.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
-    notifyChangePage: function(){
-      // 親コンポーネントに通知
-      this.$emit("action-change-page", {current: this.currentImagePage, total: this.images.length});
-    },
     notifyChangeNumberOfPage: function(num){
       this.$emit("action-change-number-of-page", num);
+    },
+    loadAndOpenMenuDialog: function(){
+      console.log("before loadConfig");
+      this.loadConfig();
+      console.log("after loadConfig");
+      this.isMenuDialogShow = true;
+    },
+    openMenuDialog: function(){
+      console.log("Viewer App openMenuDialog");
+      // load自体は非同期なのでダイアログオープン前にオープンしていまうがload完了後に再描画が行われるようにする
+      this.loadConfig();
+      this.isMenuDialogShow = true;
+    },
+    closeMenuDialog: function(){
+      console.log("Viewer App closeMenuDialog");
+      this.isMenuDialogShow = false;
     },
     onResize: function(){
       // 画面サイズ変更
@@ -90,8 +129,8 @@ export default {
             this.viewPages[this.currentPage].show = false;
             this.viewPages[this.currentPage+1].show = true;
             this.currentImagePage += this.numberOfPage;
-            if(this.currentImagePage > this.images.length - 1){
-              this.currentImagePage = this.images.length - 1;
+            if(this.currentImagePage > this.filteringResult.images.length - 1){
+              this.currentImagePage = this.filteringResult.images.length - 1;
             }
           }
           break;
@@ -103,7 +142,7 @@ export default {
             this.currentImagePage -= this.numberOfPage;
             if(this.currentImagePage < 0){
               this.beforeBlank = 0;
-              this.viewPages = this.createViewPagesWithBeforeBlank(this.images, this.numberOfPage, 0);
+              this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, 0);
               this.currentImagePage = 0;
               this.viewPages[0].show = true;
             }
@@ -111,24 +150,24 @@ export default {
           break
         case "ArrowDown":
           // 一枚進む
-          console.debug("before",this.currentImagePage, this.images.length);
-          if(this.currentImagePage < this.images.length - 1){
+          console.debug("before",this.currentImagePage, this.filteringResult.images.length);
+          if(this.currentImagePage < this.filteringResult.images.length - 1){
             if(this.beforeBlank < this.numberOfPage - 1){
               this.beforeBlank++;
             }else{
               this.beforeBlank = 0;
             }
             console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.images, this.numberOfPage, this.beforeBlank);
+            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, this.beforeBlank);
             this.currentImagePage++;
             console.debug("currentPage", this.currentPage);
             this.viewPages[this.currentPage].show = true;
           }
-          console.debug("after",this.currentImagePage, this.images.length);
+          console.debug("after",this.currentImagePage, this.filteringResult.images.length);
           break;
         case "ArrowUp":
           // 一枚戻る
-          console.debug("before", this.currentImagePage, this.images.length);
+          console.debug("before", this.currentImagePage, this.filteringResult.images.length);
           if(this.currentImagePage > 0){
             if(this.beforeBlank > 0){
               this.beforeBlank--;
@@ -136,12 +175,12 @@ export default {
               this.beforeBlank = this.numberOfPage - 1;
             }
             console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.images, this.numberOfPage, this.beforeBlank);
+            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, this.beforeBlank);
             this.currentImagePage--;
             console.debug("currentPage", this.currentPage);
             this.viewPages[this.currentPage].show = true;
           }
-          console.debug("after", this.currentImagePage, this.images.length);
+          console.debug("after", this.currentImagePage, this.filteringResult.images.length);
           break;
         case "1":
           if(this.numberOfPage !== 1){
@@ -197,7 +236,7 @@ export default {
       console.log("changeNumberOfPage", newNum);
 
       this.notifyChangeNumberOfPage(newNum);
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.images, newNum, 0);
+      this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, newNum, 0);
 
       // プロパティ numberOfPageが更新されてからの判定が必要となる為、次の描画処理で実行
       this.$nextTick(function(){
@@ -205,19 +244,16 @@ export default {
         if(this.viewPages.length > 0){
           this.viewPages[this.currentPage].show = true;
         }
-        this.notifyChangePage();
-});
-
+      });
     },
     rebuildViewPages: function(){
       console.log("ViewerMain rebuildViewPages");
       // viewPagesを更新することで最新の情報で再描画を行う
       this.currentImagePage = 0;
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.images, this.numberOfPage, 0);
+      this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, 0);
       if(this.viewPages.length > 0){
         this.viewPages[this.currentPage].show = true;
       }
-      this.notifyChangePage();
     },
   }
 }
@@ -225,5 +261,19 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.viewer-menu {
+  position: absolute;
+  z-index: 200;
+  top: 0;
+  left: 0;
+  margin: 2px 5px;
+  padding: 2px 5px;
+  opacity: 0.5;
+  color: cornflowerblue;
+}
+
+.error {
+  color: red;
+}
 
 </style>

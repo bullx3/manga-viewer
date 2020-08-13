@@ -31,7 +31,7 @@
 <script>
 export default {
   props: {
-    images: Array,
+    images: Array,  // Array of ImageInfo
   },
   methods: {
   }

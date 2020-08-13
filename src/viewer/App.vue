@@ -1,32 +1,18 @@
 <template>
   <div>
-    <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
+    <div v-if="!isFinishAnalyze">
+      <FilterIndicator v-bind:progress="progress" />
+      <div class="analyzing">解析中</div>
+    </div>
     <div v-else>
-      <div class="viewer-menu">
-        <ul>
-          <li>
-            <p>
-              {{totalPage === 0 ? 0 : currentPage+1}} / {{totalPage}} p
-              ({{imageManager.imageCount}}
-              <span v-if="imageManager.errorCount > 0" class="error">(エラー {{imageManager.errorCount}})</span>)
-            </p>
-          </li>
-          <li><p>{{ title }}</p></li>
-          <li><button v-on:click="openMenuDialog">Menu</button></li>
-        </ul>
-      </div>
       <ViewerMain
-        v-bind:images="filterImages"
-        v-bind:number-of-page="numberOfPage"
-        v-on:action-change-page="actionChangePage"
+        v-bind:images="imageManager.images"
+        v-bind:title="title"
+        v-bind:filter-config="filterConfig"
+        v-bind:filtering-result="filteringResult"
+        v-bind:number-of-page="viewConfig.numberOfPage"
         v-on:action-change-number-of-page="actionChangeNumberOfPage"
-      />
-      <MenuDialog
-        v-if="isMenuDialogShow"
-        v-bind:config="config"
-        v-bind:image-manager="imageManager"
-        v-on:close-dialog="closeMenuDialog"
-        ref="menuDialog"
+        ref="viewerMain"
       />
     </div>
   </div>
@@ -35,9 +21,7 @@
 <script>
 import Config from '../common/config'
 import ImageManager from '../common/image-manager'
-import {FilterConfig} from '../common/config'
 import ViewerMain from './components/ViewerMain.vue'
-import MenuDialog from './components/MenuDialog.vue'
 import FilterIndicator from '../common/components/FilterIndicator'
 
 export default {
@@ -46,29 +30,42 @@ export default {
       actionChangeViewer: this.actionChangeViewer,
       actionInitializeConfig: this.actionInitializeConfig,
       updateFilterSettingValue: this.updateFilterSettingValue,
+      loadConfig: this.loadConfig,
     }
   },
   components: {
     ViewerMain,
-    MenuDialog,
+    // MenuDialog,
     FilterIndicator,
   },
   data: function() {
     return {
-      config: null,
-      numberOfPage: 2,
+      config: null,   // Instance of Config class
       title: "",
-      imageManager: null,
-      filterImages: [],
+      imageManager: null, // Instance of ImageManager class
+      filterConfig: { // リアクティブによる更新により入力画面が更新される
+        check: true,
+        width: 0,
+        height: 0,
+      },
+      viewConfig: {
+        numberOfPage: 2,
+        isShowTitle: true,
+        isShowImageSize: true,
+        isShowImagePage: true,
+      },
+      filteringResult: {
+        images: [],
+        matchCount: 0, // フィルタに一致した画像数
+        totalCount: 0, // フィルタリングする前の画像数
+        errorCount: 0, // 解析失敗した画像数
+      },
       isFinishAnalyze: false,
       progress: {
         index: 0,
         length: 0,
         error: 0,
       },
-      currentPage: 0,
-      totalPage: 0,
-      isMenuDialogShow: false,
     }
   },
   created: function() {
@@ -83,16 +80,23 @@ export default {
     document.title = `[解析中]${this.title}`;
 
     (async () => {
-      await this.config.loadFilter();
-      console.log("complete LoadFilter");
+      console.log("load Config");
+      await this.config.load();
+      this.filterConfig = this.config.filter.toObject();
+      this.viewConfig = this.config.view.toObject();
 
       //画像タグ取得 & 解析
       await this.analyzeImage(param);
 
+      console.log(this.config.filter);
+      console.log(this.imageManager.images);
+      
       // フィルタ設定による情報更新
       this.imageManager.updateFilterCheck(this.config.filter);
 
-      this.filterImages = this.imageManager.filterImages;
+      console.log(this.imageManager.images);
+
+      this.reRenderingViewerMain();
 
       this.isFinishAnalyze = true;
 
@@ -114,23 +118,10 @@ export default {
       });
       console.log("complete analyze images");
     },
-    actionChangePage: function(page){
-      this.currentPage = page.current;
-      this.totalPage = page.total;
-    },
     actionChangeNumberOfPage: function(num){
-      this.numberOfPage = num;
-    },
-    openMenuDialog: function(){
-      console.log("Viewer App openMenuDialog");
-      (async () => {
-        await this.config.loadFilter();
-        this.isMenuDialogShow = true;
-      })();
-    },
-    closeMenuDialog: function(){
-      console.log("Viewer App closeMenuDialog");
-      this.isMenuDialogShow = false;
+      this.config.view.numberOfPage = num;
+      this.config.view.save();
+      this.viewConfig = this.config.view.toObject();
     },
     // provivide関数
     actionChangeViewer: function(filter){
@@ -138,34 +129,53 @@ export default {
       console.log(filter);
 
       // 設定保存
-      this.config.saveFilter(filter);
+      this.config.filter = filter;
+      this.config.filter.save();
+      this.filterConfig = this.config.filter.toObject();
 
       // ダイアログを消して画面を再構築
-      this.closeMenuDialog();
+      this.$refs.viewerMain.closeMenuDialog();
       this.reRenderingViewerMain();
     },
+    // provivide関数
     actionInitializeConfig: function(){
       console.log("viewer App actionInitializeConfig");
-      let filter = new FilterConfig();
-      filter.initialize();
-      this.config.saveFilter(filter);
+      this.config.filter.initialize();
+      this.config.filter.save();
+      this.filterConfig = this.config.filter.toObject();
+
       // フィルタ設定画面を更新
-      this.$refs.menuDialog.updateFilterSetting();
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
+      this.reRenderingViewerMain();
     },
+    // provivide関数
     updateFilterSettingValue: function(filter){
       // 子 -> 親通知.子コンポーネントからフィルタ設定の値が変更されたことを通知
       console.log("viewer App updateFilterSettingValue");
-      this.config.filter.set(filter);
+      this.config.filter = filter;
 
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
     },
+    // privide関数
+    loadConfig: async function(){
+      console.debug("Viewer App loadConfig start");
+      await this.config.filter.load();
+      this.filterConfig = this.config.filter.toObject();
+      this.imageManager.updateFilterCheck(this.config.filter);
+      // フィルタ設定画面を更新
+      console.debug("Viewer App loadConfig async end");
+    },
     reRenderingViewerMain: function(){
       console.log("reRenderingViewerMain");
-      this.filterImages = this.imageManager.filterImages;
-      console.log(this.filterImages);
+      this.filteringResult = {
+        images: this.imageManager.filterImages,
+        matchCount: this.imageManager.matchCount,
+        totalCount: this.imageManager.imageCount,
+        errorCount: this.imageManager.errorCount,
+      }
+      console.debug("filteringResult", this.filteringResult);
 
     },
   },
@@ -173,20 +183,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
-.viewer-menu {
-  position: absolute;
-  z-index: 200;
-  top: 0;
-  left: 0;
-  margin: 2px 5px;
-  padding: 2px 5px;
-  opacity: 0.5;
-  color: cornflowerblue;
+.analyzing {
+  width: 100%;
+  font-size: 3em;
+  text-align: center;
+  margin-top: 50px;
 }
-
-.error {
-  color: red;
-}
-
 </style>
