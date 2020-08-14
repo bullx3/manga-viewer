@@ -14,7 +14,6 @@
 
 <script>
 import Config from '../common/config'
-// import {FilterConfig} from '../common/config'
 import ImageManager from '../common/image-manager'
 import FilterSetting from '../common/components/FilterSetting.vue'
 import FilterIndicator from '../common/components/FilterIndicator.vue'
@@ -113,9 +112,10 @@ export default {
       console.log("complete analyze images");
     },
     actionChangeViewer: function(filter){
-      console.log("popup App actionChangeViewer");
-      console.log(filter);
-      this.config.filter = filter;
+      console.log("popup App actionChangeViewer", filter);
+      if(filter){
+        this.config.filter = filter;
+      }
       this.config.filter.save();
 
       // viewerに遷移

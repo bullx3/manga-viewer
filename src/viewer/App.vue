@@ -125,11 +125,12 @@ export default {
     },
     // provivide関数
     actionChangeViewer: function(filter){
-      console.log("viewer App actionChangeViewer");
-      console.log(filter);
+      console.log("viewer App actionChangeViewer", filter);
 
       // 設定保存
-      this.config.filter = filter;
+      if(filter){
+        this.config.filter = filter;
+      }
       this.config.filter.save();
       this.filterConfig = this.config.filter.toObject();
 

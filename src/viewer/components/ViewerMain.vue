@@ -10,7 +10,7 @@
           </p>
         </li>
         <li><p>{{ title }}</p></li>
-        <li><button v-on:click="loadAndOpenMenuDialog">Menu</button></li>
+        <li><button v-on:click="openMenuDialog">Menu</button></li>
       </ul>
     </div>
     <MenuDialog
@@ -95,12 +95,6 @@ export default {
     notifyChangeNumberOfPage: function(num){
       this.$emit("action-change-number-of-page", num);
     },
-    loadAndOpenMenuDialog: function(){
-      console.log("before loadConfig");
-      this.loadConfig();
-      console.log("after loadConfig");
-      this.isMenuDialogShow = true;
-    },
     openMenuDialog: function(){
       console.log("Viewer App openMenuDialog");
       // load自体は非同期なのでダイアログオープン前にオープンしていまうがload完了後に再描画が行われるようにする
@@ -121,6 +115,16 @@ export default {
       let keyName = event.key;
       console.debug("ViewrMain onKeyDown", keyName);
       console.debug("currentImagePage", this.currentImagePage, "currentPage", this.currentPage, "beforeBlank", this.beforeBlank);
+      if(this.isMenuDialogShow){
+        // ダイアログ表示中はメニューを閉じるキーのみうけつける
+        switch(keyName){
+          case "m":
+          case "Escape":
+            this.closeMenuDialog();
+            break;
+        }
+        return;
+      }
 
       switch(keyName){
         case "ArrowLeft":
@@ -195,6 +199,9 @@ export default {
         case "n":
           let newNum = this.numberOfPage === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
           this.changeNumberOfPage(newNum);
+          break;
+        case 'm':
+          this.openMenuDialog();
           break;
       }
     },

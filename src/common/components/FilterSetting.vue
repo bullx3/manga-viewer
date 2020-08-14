@@ -3,12 +3,12 @@
     <div class="input-filter">
       <p>下記以上のサイズのみ表示する</p>
       <input type="checkbox" v-model="filterCheck">
-      <input type="number" v-model="inputWidth" step="100" min="0" max="100000">
+      <input type="number" v-model.number="inputWidth" step="100" min="0" max="100000">
       &nbsp;×&nbsp;
-      <input type="number" v-model="inputHeight" step="100" min="0" max="100000">
+      <input type="number" v-model.number="inputHeight" step="100" min="0" max="100000">
     </div>
     <div class="action">
-      <button v-on:click="changeViewer">ビュアー表示</button>
+      <button v-on:click="changeViewer">ビュアー表示(o)</button>
       <button v-on:click="initializeConfig">初期化</button>
     </div>
   </div>
@@ -32,14 +32,50 @@ export default {
       inputHeight: this.filterConfig.height,
     }
   },
+  mounted: function(){
+    console.log("ViewerMain mounted");
+    window.addEventListener('keydown', this.onKeyDown);
+  },
+  beforeDestroy: function(){
+    console.log("beforeDestroy");
+    /* mountedで追加したリスナーはここで破棄する必要がある */
+    window.removeEventListener('keydown', this.onKeyDown);
+  },
   methods: {
+    onKeyDown: function(){
+      let keyName = event.key;
+      switch(keyName){
+        case "o":
+          this.actionChangeViewer();
+          break;
+        case "c":
+          // フィルタチェック有無を切り替える
+          this.filterCheck = !this.filterCheck;
+          break;
+        case "ArrowUp":
+          // width/heightとも100づつアップする(フォーカスがあたってる状態だと二重に上がってしまうがとりあえず仕様とする)
+          this.inputWidth += 100;
+          this.inputHeight += 100;
+          break;
+        case "ArrowDown":
+          this.inputWidth -= 100;
+          if(this.inputWidth < 0){
+            this.inputWidth = 0;
+          }
+          this.inputHeight -= 100;
+          if(this.inputHeight < 0){
+            this.inputHeight = 0;
+          }
+          break;
+        default:
+          break;
+      }
+    },
     changeViewer: function(){
       console.debug("FilterSetting changeViewer", this.filterCheck, this.inputWidth, this.inputHeight);
-      let filter = new FilterConfig();
-      filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
 
       // injection method exec
-      this.actionChangeViewer(filter);
+      this.actionChangeViewer();
     },
     initializeConfig: function(){
       console.log("FilterSetting  initializeConfig");
