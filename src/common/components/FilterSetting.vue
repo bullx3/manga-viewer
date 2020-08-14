@@ -1,7 +1,38 @@
 <template>
   <div>
+    <div class="show-options">
+      <h3>表示オプション</h3>
+      <div>
+        1ページの画像数
+        <select v-model.number="selectedNumberOfPage">
+          <option value="1">１</option>
+          <option value="2">２ (見開き)</option>
+        </select>
+      </div>
+      <div>
+        <ul>
+          <li>
+            <input type="checkbox" v-model="checkShowTitle" id="show-title">
+            <label for="show-title">タイトル</label>
+          </li>
+          <li>
+            <input type="checkbox" v-model="checkShowImageSize" id="show-size">
+            <label for="show-size">画像サイズ</label>
+          </li>
+          <li>
+            <input type="checkbox" v-model="checkShowImagePage" id="show-page">
+            <label for="show-page">ページ</label>
+          </li>
+          <li>
+            <input type="checkbox" v-model="checkShowLink" id="show-link">
+            <label for="show-link">リンク</label>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <hr>
     <div class="input-filter">
-      <p>下記以上のサイズのみ表示する</p>
+      <h3>フィルタリング</h3>
       <input type="checkbox" v-model="filterCheck">
       <input type="number" v-model.number="inputWidth" step="100" min="0" max="100000">
       &nbsp;×&nbsp;
@@ -17,19 +48,29 @@
 
 <script>
 import {FilterConfig} from "../config"
+import {ViewConfig} from "../config"
 
 export default {
-  props: ['filterConfig'],
+  props: {
+    filterConfig: Object,
+    viewConfig: Object,
+  },
   inject: [
     'actionChangeViewer',
     'actionInitializeConfig',
     'updateFilterSettingValue',
+    'updateViewSettingValue',
   ],
   data: function() {
     return {
       filterCheck: this.filterConfig.check,
       inputWidth: this.filterConfig.width,
       inputHeight: this.filterConfig.height,
+      selectedNumberOfPage: this.viewConfig.numberOfPage,
+      checkShowTitle: this.viewConfig.isShowTitle,
+      checkShowImageSize: this.viewConfig.isShowImageSize,
+      checkShowImagePage: this.viewConfig.isShowImagePage,
+      checkShowLink: this.viewConfig.isShowLink,
     }
   },
   mounted: function(){
@@ -89,21 +130,48 @@ export default {
       this.inputWidth = this.filterConfig.width;
       this.inputHeight = this.filterConfig.height;
     },
-    notifyChanged: function(){
+    notifyFilterChanged: function(){
       console.debug("FilterSetting NotifyChanged", this.filterCheck, this.inputWidth, this.inputHeight);
       let filter = new FilterConfig();
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
       this.updateFilterSettingValue(filter);
     },
+    notifyViewChanged: function(){
+      console.debug("FilterSetting notifyViewChanged");
+      let view = new ViewConfig();
+      view.numberOfPage = this.selectedNumberOfPage;
+      view.isShowTitle = this.checkShowTitle;
+      view.isShowImageSize = this.checkShowImageSize;
+      view.isShowImagePage = this.checkShowImagePage;
+      view.isShowLink = this.checkShowLink;
+
+      this.updateViewSettingValue(view);
+    }
   },
   watch: {
-    filterCheck: function(){this.notifyChanged()},
-    inputWidth: function(){this.notifyChanged()},
-    inputHeight: function(){this.notifyChanged()},
+    filterCheck: function(){this.notifyFilterChanged()},
+    inputWidth: function(){this.notifyFilterChanged()},
+    inputHeight: function(){this.notifyFilterChanged()},
+
+    selectedNumberOfPage: function(){this.notifyViewChanged()},
+    checkShowTitle: function(){this.notifyViewChanged()},
+    checkShowImageSize: function(){this.notifyViewChanged()},
+    checkShowImagePage: function(){this.notifyViewChanged()},
+    checkShowLink: function(){this.notifyViewChanged()},
+
     filterConfig: function(){
+      console.debug("watch FilterSetting filterConfig");
       this.filterCheck = this.filterConfig.check;
       this.inputWidth = this.filterConfig.width;
       this.inputHeight = this.filterConfig.height;
+    },
+    viewConfig: function(){
+      console.debug("watch FilterSetting viewConfig");
+      this.selectedNumberOfPage = this.viewConfig.numberOfPage;
+      this.checkShowTitle = this.viewConfig.isShowTitle;
+      this.checkShowImageSize = this.viewConfig.isShowImageSize;
+      this.checkShowImagePage = this.viewConfig.isShowImagePage;
+      this.checkShowLink = this.viewConfig.isShowLink;
     }
   }
 }
@@ -130,5 +198,18 @@ export default {
   button {
     background-color: lightblue;
   }
+}
+
+.show-options {
+  > div {
+    margin: 4px 0 4px 0;
+  }
+  select {
+    height: 1.5em;
+  }
+  li{
+    display: inline-block;
+  }
+
 }
 </style>

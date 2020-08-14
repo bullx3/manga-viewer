@@ -1,9 +1,9 @@
 <template>
   <div v-if="!imageInfo.isBlank" class="img-area">
     <img v-bind:src="imageInfo.url" v-bind:style="styleObject" />
-    <div class="img-page">{{pageIndex+1}} p</div>
-    <div class="img-info">{{imageInfo.width}} x {{imageInfo.height}}</div>
-    <div v-if="imageInfo.isLink" class="img-link">
+    <div v-if="viewConfig.isShowImagePage" class="img-page">{{pageIndex+1}} p</div>
+    <div v-if="viewConfig.isShowImageSize" class="img-info">{{imageInfo.width}} x {{imageInfo.height}}</div>
+    <div v-if="imageInfo.isLink && viewConfig.isShowLink" class="img-link">
       <a v-bind:href="imageInfo.link"><img src="/images/icon-link_x64.png" /></a>
     </div>
   </div>
@@ -16,6 +16,7 @@ export default {
     pageIndex: Number,
     rapWidth: Number,
     rapHeight: Number,
+    viewConfig: Object,
   },
   computed: {
     styleObject: function(){

@@ -9,13 +9,14 @@
             <span v-if="filteringResult.errorCount > 0" class="error">(エラー {{filteringResult.errorCount}})</span>)
           </p>
         </li>
-        <li><p>{{ title }}</p></li>
+        <li v-if="viewConfig.isShowTitle"><p>{{ title }}</p></li>
         <li><button v-on:click="openMenuDialog">Menu</button></li>
       </ul>
     </div>
     <MenuDialog
       v-if="isMenuDialogShow"
       v-bind:filter-config="filterConfig"
+      v-bind:view-config="viewConfig"
       v-bind:images="images"
       v-bind:filtering-result="filteringResult"
       v-on:close-dialog="closeMenuDialog"
@@ -23,7 +24,7 @@
     <ViewerPage
       v-for="(viewPage, index) in viewPages"
       v-bind:key="index"
-      v-bind:number-of-page="numberOfPage"
+      v-bind:view-config="viewConfig"
       v-bind:page-images="viewPage.pageImages"
       v-bind:page-width="pageWidth"
       v-bind:page-height="pageHeight"
@@ -47,7 +48,7 @@ export default {
   ],
   props: {
     images: Array,  // フィルタリングされていない(判定はされている)ImageManagerの配列
-    numberOfPage: Number,
+    viewConfig: Object,
     title: String,
     filterConfig: Object,
     filteringResult: Object,
@@ -59,14 +60,12 @@ export default {
       pageWidth: window.innerWidth,
       pageHeight: window.innerHeight,
       beforeBlank: 0,
-      // currentPage: 0,
-      // totalPage: 0,
       isMenuDialogShow: false,
     }
   },
   computed: {
     currentPage: function() {
-      return Math.floor((this.currentImagePage + this.beforeBlank) / this.numberOfPage);
+      return Math.floor((this.currentImagePage + this.beforeBlank) / this.viewConfig.numberOfPage);
     }
   },
   watch: {
@@ -132,7 +131,7 @@ export default {
           if(this.currentPage < this.viewPages.length - 1 ){
             this.viewPages[this.currentPage].show = false;
             this.viewPages[this.currentPage+1].show = true;
-            this.currentImagePage += this.numberOfPage;
+            this.currentImagePage += this.viewConfig.numberOfPage;
             if(this.currentImagePage > this.filteringResult.images.length - 1){
               this.currentImagePage = this.filteringResult.images.length - 1;
             }
@@ -143,10 +142,10 @@ export default {
           if(this.currentPage > 0){
             this.viewPages[this.currentPage].show = false;
             this.viewPages[this.currentPage-1].show = true;
-            this.currentImagePage -= this.numberOfPage;
+            this.currentImagePage -= this.viewConfig.numberOfPage;
             if(this.currentImagePage < 0){
               this.beforeBlank = 0;
-              this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, 0);
+              this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, 0);
               this.currentImagePage = 0;
               this.viewPages[0].show = true;
             }
@@ -156,13 +155,13 @@ export default {
           // 一枚進む
           console.debug("before",this.currentImagePage, this.filteringResult.images.length);
           if(this.currentImagePage < this.filteringResult.images.length - 1){
-            if(this.beforeBlank < this.numberOfPage - 1){
+            if(this.beforeBlank < this.viewConfig.numberOfPage - 1){
               this.beforeBlank++;
             }else{
               this.beforeBlank = 0;
             }
             console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, this.beforeBlank);
+            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, this.beforeBlank);
             this.currentImagePage++;
             console.debug("currentPage", this.currentPage);
             this.viewPages[this.currentPage].show = true;
@@ -176,10 +175,10 @@ export default {
             if(this.beforeBlank > 0){
               this.beforeBlank--;
             }else{
-              this.beforeBlank = this.numberOfPage - 1;
+              this.beforeBlank = this.viewConfig.numberOfPage - 1;
             }
             console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, this.beforeBlank);
+            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, this.beforeBlank);
             this.currentImagePage--;
             console.debug("currentPage", this.currentPage);
             this.viewPages[this.currentPage].show = true;
@@ -187,17 +186,17 @@ export default {
           console.debug("after", this.currentImagePage, this.filteringResult.images.length);
           break;
         case "1":
-          if(this.numberOfPage !== 1){
+          if(this.viewConfig.numberOfPage !== 1){
             this.changeNumberOfPage(1);
           }
           break;
         case "2":
-          if(this.numberOfPage !== 2){
+          if(this.viewConfignumberOfPage !== 2){
             this.changeNumberOfPage(2);
           }
           break;
         case "n":
-          let newNum = this.numberOfPage === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
+          let newNum = this.viewConfig.numberOfPage === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
           this.changeNumberOfPage(newNum);
           break;
         case 'm':
@@ -247,7 +246,7 @@ export default {
 
       // プロパティ numberOfPageが更新されてからの判定が必要となる為、次の描画処理で実行
       this.$nextTick(function(){
-        console.debug("changeNumberOfPage -> nextTick", this.numberOfPage, this.currentPage);
+        console.debug("changeNumberOfPage -> nextTick", this.viewConfig.numberOfPage, this.currentPage);
         if(this.viewPages.length > 0){
           this.viewPages[this.currentPage].show = true;
         }
@@ -257,7 +256,7 @@ export default {
       console.log("ViewerMain rebuildViewPages");
       // viewPagesを更新することで最新の情報で再描画を行う
       this.currentImagePage = 0;
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.numberOfPage, 0);
+      this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, 0);
       if(this.viewPages.length > 0){
         this.viewPages[this.currentPage].show = true;
       }

@@ -1,28 +1,76 @@
 class baseConfig{
   constructor(){
     this.initialize();
+
+    // getter/setter作成
+    let props = this.props();
+    for(let i = 0; i < props.length; i++){
+      let prop = props[i];
+      Object.defineProperty(this, prop.name, {
+        get: function() {
+          return this['_' + prop.name];
+        },
+        set: function(val){
+          if(this.typeCheck(val, prop.name, prop.type)){
+            this['_' + prop.name] = val;
+          }
+        }
+      });  
+    }
   }
-  typeCheck(val, typeName){
+  typeCheck(val, name, typeName){
     if(typeof(val) === typeName){
       return true
     }else{
-      throw new TypeError(`"set type error.' argument is ${typeof(val)} `);
+      throw new TypeError(`"set type error.' ${name} is ${typeof(val)} `);
     }
-
   }
   throwTypeError(name, val){throw new TypeError(`"set type error property.'${name}' is ${typeof(val)} `);}
   throwAbstractError(){throw new Error("need override method");}
   name(){
     this.throwAbstractError()
   }
-  initialize(){
+  props(){
     this.throwAbstractError()
+  }
+  initialize(){
+    let props = this.props();
+    for(let i = 0; i < props.length; i++){
+      let prop = props[i];
+      this['_' + prop.name] = prop.init;
+    }
   }
   toObject(){
-    this.throwAbstractError()
+    let obj = {};
+    let props = this.props();
+    for(let i = 0; i < props.length; i++){
+      let prop = props[i];
+      obj[prop.name] = this[prop.name];
+    }
+    return obj;
   }
   fromObject(obj){
-    this.throwAbstractError()
+    let props = this.props();
+    for(let i = 0; i < props.length; i++){
+      let prop = props[i];
+      if(!obj[prop.name] === undefined){
+        throw new Error(`Error ${this.name}.fromObject. '${props.name}' is not find `);
+      }
+      this[prop.name] = obj[prop.name];
+    }
+  }
+  // true ならOK
+  validateLoad(obj){
+    let result = true;
+    let props = this.props();
+    for(let i = 0; i < props.length; i++){
+      let prop = props[i];
+      if(!obj[prop.name] === undefined){
+        console.error(`Error validation. ${prop.name} is undefined`);
+        result = false;
+      }
+    }
+    return result;
   }
 
   async save(){
@@ -35,15 +83,15 @@ class baseConfig{
   async load(){
     console.debug(`start load ${this.name()}`);
     let obj = await browser.storage.local.get(this.name());
-    console.log(obj);
-    if(!obj[this.name()]){
-      console.log(`Don't exist ${this.name()} setting`);
+    let configObj = obj[this.name()];
+    if(!configObj || !this.validateLoad(configObj)){
+      console.log(`Don't exist ${this.name()} setting or upgrade setting`);
       this.initialize();
       await this.save();
     }else{
-      this.fromObject(obj[this.name()]);
+      this.fromObject(configObj);
     }
-    console.debug(`complete load ${this.name()}`, this);
+    console.debug(`complete load ${configObj}`, this);
   }
 }
 
@@ -51,43 +99,21 @@ class FilterConfig extends baseConfig{
   constructor(){
     super();
   }
-  get check(){return this._check}
-  set check(val){
-    if(this.typeCheck(val, 'boolean')){
-      this._check = val
-    }
-  }
-  get width(){return this._width}
-  set width(val){
-    if(this.typeCheck(val, 'number')){
-      this._width = val
-    }
-  }
-  get height(){return this._height}
-  set height(val){
-    if(this.typeCheck(val, 'number')){
-      this._height = val
-    }
-  }
 
   name(){
     return "filterConfig";
+  }
+  props(){
+    return [
+      {name: "check", type: "boolean", init: true},
+      {name: "width", type: "number", init: 200},
+      {name: "height", type: "number", init: 200},
+    ];
   }
   setFilter(check, width, height){
     this.check = check;
     this.width = parseInt(width);
     this.height = parseInt(height);
-  }
-  initialize(){
-    this._check = true;
-    this._width = 200;
-    this._height = 200;
-  }
-  toObject(){
-    return {check: this.check, width: this.width, height: this.height};
-  }
-  fromObject(obj){
-    this.setFilter(obj.check, obj.width, obj.height);
   }
 }
 
@@ -98,52 +124,17 @@ class ViewConfig extends baseConfig {
   constructor(){
     super();
   }
-  get numberOfPage(){return this._numberOfPage}
-  set numberOfPage(val){
-    if(this.typeCheck(val, 'number')){
-      this._numberOfPage = val
-    }
-  }
-  get isShowTitle(){return this._isShowTitle}
-  set isShowTitle(val){
-    if(this.typeCheck(val, 'boolean')){
-      this._isShowTitle = val
-    }
-  }
-  get isShowImageSize(){return this._isShowImageSize}
-  set isShowImageSize(val){
-    if(this.typeCheck(val, 'boolean')){
-      this._isShowImageSize = val
-    }
-  }
-  get isShowImagePage(){return this._isShowImagePage}
-  set isShowImagePage(val){
-    if(this.typeCheck(val, 'boolean')){
-      this._isShowImagePage = val
-    }
-  }
   name(){
     return "viewConfig";
   }
-  initialize(){
-    this.numberOfPage = 2;
-    this.isShowTitle = true;
-    this.isShowImageSize = true;
-    this.isShowImagePage = true;
-  }
-  toObject(){
-    return {
-      numberOfPage: this.numberOfPage,
-      isShowTitle: this.isShowTitle,
-      isShowImageSize: this.isShowImageSize,
-      isShowImagePage: this.isShowImagePage,
-    };
-  }
-  fromObject(obj){
-    this.numberOfPage = obj.numberOfPage;
-    this.isShowTitle = obj.isShowTitle;
-    this.isShowImageSize = obj.isShowImageSize;
-    this.isShowImagePage = obj.isShowImagePage;
+  props(){
+    return [
+      {name: "numberOfPage", type: "number", init: 2},
+      {name: "isShowTitle", type: "boolean", init: true},
+      {name: "isShowImageSize", type: "boolean", init: true},
+      {name: "isShowImagePage", type: "boolean", init: true},
+      {name: "isShowLink", type: "boolean", init: true},
+    ];
   }
 }
 export {ViewConfig}
@@ -156,13 +147,13 @@ class Config {
   }
 
   async load(){
-    this.filter.load();
-    this.view.load();
+    await this.filter.load();
+    await this.view.load();
   }
 
   async save(){
-    this.filter.save();
-    this.view.save();
+    await this.filter.save();
+    await this.view.save();
   }
 }
 

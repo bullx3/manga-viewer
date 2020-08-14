@@ -9,8 +9,8 @@
         v-bind:images="imageManager.images"
         v-bind:title="title"
         v-bind:filter-config="filterConfig"
+        v-bind:view-config="viewConfig"
         v-bind:filtering-result="filteringResult"
-        v-bind:number-of-page="viewConfig.numberOfPage"
         v-on:action-change-number-of-page="actionChangeNumberOfPage"
         ref="viewerMain"
       />
@@ -30,6 +30,7 @@ export default {
       actionChangeViewer: this.actionChangeViewer,
       actionInitializeConfig: this.actionInitializeConfig,
       updateFilterSettingValue: this.updateFilterSettingValue,
+      updateViewSettingValue: this.updateViewSettingValue,
       loadConfig: this.loadConfig,
     }
   },
@@ -53,6 +54,7 @@ export default {
         isShowTitle: true,
         isShowImageSize: true,
         isShowImagePage: true,
+        isShowLink: true,
       },
       filteringResult: {
         images: [],
@@ -84,11 +86,10 @@ export default {
       await this.config.load();
       this.filterConfig = this.config.filter.toObject();
       this.viewConfig = this.config.view.toObject();
+      console.debug(this.viewConfig);
 
       //画像タグ取得 & 解析
       await this.analyzeImage(param);
-
-      console.log(this.config.filter);
       
       // フィルタ設定による情報更新
       this.imageManager.updateFilterCheck(this.config.filter);
@@ -123,15 +124,14 @@ export default {
       this.viewConfig = this.config.view.toObject();
     },
     // provivide関数
-    actionChangeViewer: function(filter){
-      console.log("viewer App actionChangeViewer", filter);
+    actionChangeViewer: function(){
+      console.log("viewer App actionChangeViewer");
 
       // 設定保存
-      if(filter){
-        this.config.filter = filter;
-      }
       this.config.filter.save();
       this.filterConfig = this.config.filter.toObject();
+      this.config.view.save();
+      this.viewConfig = this.config.view.toObject();
 
       // ダイアログを消して画面を再構築
       this.$refs.viewerMain.closeMenuDialog();
@@ -143,6 +143,10 @@ export default {
       this.config.filter.initialize();
       this.config.filter.save();
       this.filterConfig = this.config.filter.toObject();
+
+      this.config.view.initialize();
+      this.config.view.save();
+      this.viewConfig = this.config.view.toObject();
 
       // フィルタ設定画面を更新
       // フィルタチェックを更新することでリスト表示を更新
@@ -158,7 +162,14 @@ export default {
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
     },
-    // privide関数
+    // provide関数
+    updateViewSettingValue: function(view){
+      console.debug("viewer App updateViewSettingValue");
+
+      this.config.view = view;
+      this.viewConfig = this.config.view.toObject();
+    },
+    // provide関数
     loadConfig: async function(){
       console.debug("Viewer App loadConfig start");
       await this.config.filter.load();

@@ -4,6 +4,7 @@
     <hr>
     <FilterSetting
       v-bind:filter-config="filterConfig"
+      v-bind:view-config="viewConfig"
     />
     <hr>
     <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
@@ -32,6 +33,7 @@ export default {
       actionChangeViewer: this.actionChangeViewer,
       actionInitializeConfig: this.actionInitializeConfig,
       updateFilterSettingValue: this.updateFilterSettingValue,
+      updateViewSettingValue: this.updateViewSettingValue,
     }
   },
   data: function() {
@@ -49,6 +51,7 @@ export default {
         isShowTitle: true,
         isShowImageSize: true,
         isShowImagePage: true,
+        isShowLink: true,
       },
       filteringResult: {
         images: [],
@@ -111,12 +114,10 @@ export default {
       });
       console.log("complete analyze images");
     },
-    actionChangeViewer: function(filter){
-      console.log("popup App actionChangeViewer", filter);
-      if(filter){
-        this.config.filter = filter;
-      }
+    actionChangeViewer: function(){
+      console.log("popup App actionChangeViewer");
       this.config.filter.save();
+      this.config.view.save();
 
       // viewerに遷移
       (async () => {
@@ -130,6 +131,9 @@ export default {
       console.log("popup App actionInitializeConfig");
       this.config.filter.initialize();
       this.config.filter.save();
+
+      this.config.view.initialize();
+      this.config.view.save();
 
       // 子コンポーネントの表示内容を更新
       this.updateFilterSetting();
@@ -146,6 +150,10 @@ export default {
 
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
+    },
+    updateViewSettingValue: function(view){
+      this.config.view = view;
+      
     },
     updateFilterSetting: function(){
       this.filterConfig = this.config.filter.toObject();

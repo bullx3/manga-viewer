@@ -7,6 +7,7 @@
           <button class="btn-close-dialog" v-on:click="$emit('close-dialog')">x</button>
           <FilterSetting
             v-bind:filter-config="filterConfig"
+            v-bind:view-config="viewConfig"
             ref="filterSetting"
           />
           <hr>
@@ -33,6 +34,7 @@ export default {
     images: Array,
     filteringResult: Object,
     filterConfig: Object,
+    viewConfig: Object,
   },
   methods: {
     updateFilterSetting: function(){
