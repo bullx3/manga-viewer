@@ -3,6 +3,9 @@
     <img v-bind:src="imageInfo.url" v-bind:style="styleObject" />
     <div class="img-page">{{pageIndex+1}} p</div>
     <div class="img-info">{{imageInfo.width}} x {{imageInfo.height}}</div>
+    <div v-if="imageInfo.isLink" class="img-link">
+      <a v-bind:href="imageInfo.link"><img src="/images/icon-link_x64.png" /></a>
+    </div>
   </div>
 </template>
 
@@ -51,6 +54,20 @@ export default {
   right: 5px;
   opacity: 0.5;
   color: cornflowerblue;
+}
+
+.img-link {
+  position: absolute;
+  z-index: 90;
+  bottom: 5px;
+  left: 5px;
+  opacity: 0.5;
+  color: cornflowerblue;
+
+  img {
+    width:1.5em;
+    height:1.5em;
+  }
 }
 
 </style>

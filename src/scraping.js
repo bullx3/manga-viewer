@@ -14,8 +14,17 @@ var images = [];
 var imageElements = document.images;
 
 for(var i = 0; i < imageElements.length; i++){
-  images.push({url: imageElements[i].src});
+  var parent =imageElements[i].parentNode;
+  var aTag = null;
+  if(parent.tagName === "A"){
+    if(parent.href){
+      aTag = parent.href;
+    }
+  }
+  images.push({url: imageElements[i].src, link: aTag});
 }
+
+console.debug(images);
 
 result = {"title": title, "images": images};
 result;

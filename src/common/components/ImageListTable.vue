@@ -6,6 +6,7 @@
           <th>ファイル名</th>
           <th>幅</th>
           <th>高さ</th>
+          <th>リンク</th>
         </tr>
       </thead>
       <tbody>
@@ -21,6 +22,10 @@
           <td v-else class="error"> - </td>
           <td v-if="image.isValid">{{image.height}}</td>
           <td v-else class="error"> - </td>
+          <td v-if="image.isLink">
+            <a v-bind:href="image.link"><img src="/images/icon-link_x16.png" /></a>
+          </td>
+          <td v-else> - </td>
         </tr>
       </tbody>
     </table>
@@ -54,7 +59,10 @@ table {
       width: 60%;
     }
     &:nth-child(2), &:nth-child(3){
-      width: 20%;
+      width: 15%;
+    }
+    &:nth-child(4){
+      width: 10%;
     }
 
   }
@@ -66,10 +74,15 @@ table {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-
-    &:nth-child(2), &:nth-child(3){
+    padding: 1px 4px;
+    
+    &:nth-child(2), &:nth-child(3), &:nth-child(4){
       text-align: center;
     }
+  }
+
+  img {
+    height: 0.8em;
   }
 }
 

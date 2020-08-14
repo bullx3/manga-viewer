@@ -31,6 +31,9 @@
     "page": "options/options.html",
     "chrome_style": true
   },
+  "web_accessible_resources": [
+    "images/*.png"
+  ], 
   "commands": {
     "change_image_preview":{
         "suggested_key": {

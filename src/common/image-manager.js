@@ -13,8 +13,12 @@ class ImageManager {
   get filterImages(){
     return this._images.filter(image => image.isMatch);
   }
-  append(url){
+  append(url, link){
     let image = new ImageInfo(url);
+    if(link){
+      image.isLink = true;
+      image.link = link;
+    }
     this._images.push(image);
     return image;
   }

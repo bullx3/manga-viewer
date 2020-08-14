@@ -99,7 +99,7 @@ export default {
       this.title = param.title;
 
       // ImageManagerに画像情報を追加
-      param.images.forEach((data) => this.imageManager.append(data.url));
+      param.images.forEach((data) => this.imageManager.append(data.url, data.link));
 
       console.log("start analyze images")
       // 画像サイズを解析

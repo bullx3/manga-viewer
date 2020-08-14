@@ -82,6 +82,7 @@ const config = {
       { from: 'options/options.html', to: 'options/options.html', transform: transformHtml },
       { from: 'scraping.js', to: 'scraping.js', },
       { from: 'viewer/viewer.html', to: 'viewer/viewer.html', transform: transformHtml },
+      { from: 'assets/images', to: 'images' },
       {
         from: 'manifest.json',
         to: 'manifest.json',

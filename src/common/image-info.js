@@ -12,6 +12,8 @@ class ImageInfo{
     this.height = 0;
     this.isMatch = true; // フィルタ値に対してマッチしているか?
     this.isValid = true; // 画像の有効性(解析できた場合はtrue)
+    this.isLink = false; // 親にaタグがあるか
+    this.link = ""; // 親にaタグがある場合はhrefの内容が入る
   }
 
   getFilename(url) {

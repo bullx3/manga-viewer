@@ -89,12 +89,11 @@ export default {
       await this.analyzeImage(param);
 
       console.log(this.config.filter);
-      console.log(this.imageManager.images);
       
       // フィルタ設定による情報更新
       this.imageManager.updateFilterCheck(this.config.filter);
 
-      console.log(this.imageManager.images);
+      console.debug(this.imageManager.images);
 
       this.reRenderingViewerMain();
 
@@ -105,7 +104,7 @@ export default {
   },
   methods: {
     analyzeImage: async function(param){
-      param.images.forEach((data) => this.imageManager.append(data.url));
+      param.images.forEach((data) => this.imageManager.append(data.url, data.link));
 
       console.log("start analyze images")
       // 画像サイズを解析
