@@ -81,16 +81,17 @@ export default {
     (async () => {
       await this.config.load();
 
+      // 設定表示更新
+      this.reRenderingSetting();
+
       //画像タグ取得 & 解析
       await this.scrapingAndAnalyzeImage();
-
-      this.updateFilterSetting();
 
       // フィルタ設定による情報更新
       this.imageManager.updateFilterCheck(this.config.filter);
 
       // 画像リスト更新
-      this.updateImageList();
+      this.reRenderingImageList();
 
       this.isFinishAnalyze = true;
 
@@ -121,11 +122,10 @@ export default {
     },
     actionChangeViewer: function(){
       console.log("popup App actionChangeViewer");
-      this.config.filter.save();
-      this.config.view.save();
 
       // viewerに遷移
       (async () => {
+        await this.config.save();
         let result = await browser.tabs.executeScript(null, {file: "/scraping.js"})
         localStorage["viewerParam"] = JSON.stringify(result[0]);
         await browser.tabs.update({"url": "/viewer/viewer.html"})
@@ -141,12 +141,12 @@ export default {
       this.config.view.save();
 
       // 子コンポーネントの表示内容を更新
-      this.updateFilterSetting();
+      this.reRenderingSetting();
       
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
 
-      this.updateImageList();
+      this.reRenderingImageList();
     },
     updateFilterSettingValue: function(filter){
       // 子 -> 親通知.子コンポーネントからフィルタ設定の値が変更されたことを通知
@@ -160,11 +160,11 @@ export default {
       this.config.view = view;
       
     },
-    updateFilterSetting: function(){
+    reRenderingSetting: function(){
       this.filterConfig = this.config.filter.toObject();
       this.viewConfig = this.config.view.toObject();
     },
-    updateImageList: function() {
+    reRenderingImageList: function() {
       this.filteringResult = {
         images: this.imageManager.filterImages,
         matchCount: this.imageManager.matchCount,

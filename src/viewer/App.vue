@@ -84,9 +84,7 @@ export default {
     (async () => {
       console.log("load Config");
       await this.config.load();
-      this.filterConfig = this.config.filter.toObject();
-      this.viewConfig = this.config.view.toObject();
-      console.debug(this.viewConfig);
+      this.reRenderingSetting();
 
       //画像タグ取得 & 解析
       await this.analyzeImage(param);
@@ -128,10 +126,8 @@ export default {
       console.log("viewer App actionChangeViewer");
 
       // 設定保存
-      this.config.filter.save();
-      this.filterConfig = this.config.filter.toObject();
-      this.config.view.save();
-      this.viewConfig = this.config.view.toObject();
+      this.config.save();
+      this.reRenderingSetting();
 
       // ダイアログを消して画面を再構築
       this.$refs.viewerMain.closeMenuDialog();
@@ -142,11 +138,11 @@ export default {
       console.log("viewer App actionInitializeConfig");
       this.config.filter.initialize();
       this.config.filter.save();
-      this.filterConfig = this.config.filter.toObject();
 
       this.config.view.initialize();
       this.config.view.save();
-      this.viewConfig = this.config.view.toObject();
+
+      this.reRenderingSetting();
 
       // フィルタ設定画面を更新
       // フィルタチェックを更新することでリスト表示を更新
@@ -172,11 +168,16 @@ export default {
     // provide関数
     loadConfig: async function(){
       console.debug("Viewer App loadConfig start");
-      await this.config.filter.load();
-      this.filterConfig = this.config.filter.toObject();
+      await this.config.load();
+      this.reRenderingSetting();
+
       this.imageManager.updateFilterCheck(this.config.filter);
       // フィルタ設定画面を更新
       console.debug("Viewer App loadConfig async end");
+    },
+    reRenderingSetting: function(){
+      this.filterConfig = this.config.filter.toObject();
+      this.viewConfig = this.config.view.toObject();
     },
     reRenderingViewerMain: function(){
       console.log("reRenderingViewerMain");
