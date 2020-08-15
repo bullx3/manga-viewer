@@ -13,8 +13,8 @@
           <hr>
           <FilterResult v-bind:filtering-result="filteringResult" />
           <ImageListTable v-bind:images="images" />
-          <FloatThumbnail v-bind:image-url="thumnailUrl" />
         </div>
+        <FloatThumbnail v-bind:image-url="thumnailUrl" />
       </div>
     </div>
   </transition>
