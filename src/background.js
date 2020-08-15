@@ -45,3 +45,12 @@ chrome.commands.onCommand.addListener((command) => {
   }
 });
 
+// page action判定
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+  // Show page action http or https
+  if (changeInfo.status == "complete"){
+      if (tab.url.indexOf("https://") === 0 || tab.url.indexOf("http://") === 0){
+        chrome.pageAction.show(tabId);
+      }
+  }
+});
