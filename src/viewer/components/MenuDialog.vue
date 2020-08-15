@@ -13,6 +13,7 @@
           <hr>
           <FilterResult v-bind:filtering-result="filteringResult" />
           <ImageListTable v-bind:images="images" />
+          <FloatThumbnail v-bind:image-url="thumnailUrl" />
         </div>
       </div>
     </div>
@@ -23,12 +24,19 @@
 import FilterSetting from '../../common/components/FilterSetting.vue';
 import FilterResult from '../../common/components/FilterResult.vue';
 import ImageListTable from '../../common/components/ImageListTable.vue';
+import FloatThumbnail from '../../common/components/FLoatThumbnail.vue';
 
 export default {
   components: {
     FilterSetting,
     FilterResult,
     ImageListTable,
+    FloatThumbnail,
+  },
+  provide: function(){
+    return {
+      updateThumbnailImage: this.updateThumbnailImage,
+    }
   },
   props: {
     images: Array,
@@ -36,10 +44,19 @@ export default {
     filterConfig: Object,
     viewConfig: Object,
   },
+  data: function(){
+    return{
+      thumnailUrl: null,
+    }
+  },
   methods: {
     updateFilterSetting: function(){
       this.$refs.filterSetting.update();
-    }
+    },
+    updateThumbnailImage: function(url) {
+      console.debug("updateThumbnailImage", url);
+      this.thumnailUrl = url;
+    },
   }
 }
 </script>

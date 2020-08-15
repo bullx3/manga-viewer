@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 250px;">
+  <div style="width: 300px;">
     <p>{{title}}</p>
     <hr>
     <FilterSetting
@@ -10,6 +10,7 @@
     <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
     <FilterResult v-else v-bind:filtering-result="filteringResult" />
     <ImageListTable v-bind:images="imageManager.images" />
+    <FloatThumbnail v-bind:image-url="thumnailUrl" />
   </div>
 </template>
 
@@ -20,6 +21,7 @@ import FilterSetting from '../common/components/FilterSetting.vue'
 import FilterIndicator from '../common/components/FilterIndicator.vue'
 import FilterResult from '../common/components/FilterResult.vue'
 import ImageListTable from '../common/components/ImageListTable.vue'
+import FloatThumbnail from '../common/components/FLoatThumbnail.vue'
 
 export default {
   components: {
@@ -27,6 +29,7 @@ export default {
     FilterResult,
     FilterIndicator,
     ImageListTable,
+    FloatThumbnail,
   },
   provide: function(){
     return {
@@ -34,6 +37,7 @@ export default {
       actionInitializeConfig: this.actionInitializeConfig,
       updateFilterSettingValue: this.updateFilterSettingValue,
       updateViewSettingValue: this.updateViewSettingValue,
+      updateThumbnailImage: this.updateThumbnailImage,
     }
   },
   data: function() {
@@ -65,6 +69,7 @@ export default {
         error: 0,
       },
       title: "",
+      thumnailUrl: null,
     }
   },
   // コンポーネントの生成後に実行(dataはリアクティブ状態)
@@ -166,6 +171,10 @@ export default {
         totalCount: this.imageManager.imageCount,
         errorCount: this.imageManager.errorCount,
       }
+    },
+    updateThumbnailImage: function(url) {
+      console.debug("updateThumbnailImage", url);
+      this.thumnailUrl = url;
     },
   },
 }

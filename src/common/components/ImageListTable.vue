@@ -15,17 +15,25 @@
           v-bind:key="index"
           v-bind:class="{ 'no-match-tr' : !image.isMatch}"
         >
-          <td v-if="image.isBlank" class="error">No name</td>
-          <td v-else-if="!image.isValid" class="error">{{image.filename}}</td>
-          <td v-else >{{image.filename}}</td>
-          <td v-if="image.isValid">{{image.width}}</td>
-          <td v-else class="error"> - </td>
-          <td v-if="image.isValid">{{image.height}}</td>
-          <td v-else class="error"> - </td>
-          <td v-if="image.isLink">
-            <a v-bind:href="image.link"><img src="/images/icon-link_x16.png" /></a>
+          <td v-on:mouseover="mouseover(image)" v-on:mouseleave="mouseleave(image)">
+            <div v-if="image.isBlank" class="error">No name</div>
+            <div v-else-if="!image.isValid" class="error">{{image.filename}}</div>
+            <div v-else>{{image.filename}}</div>
           </td>
-          <td v-else> - </td>
+          <td>
+            <div v-if="image.isValid">{{image.width}}</div>
+            <div v-else class="error"> - </div>
+          </td>
+          <td>
+            <div v-if="image.isValid">{{image.height}}</div>
+            <div v-else class="error"> - </div>
+          </td>
+          <td>
+            <div v-if="image.isLink">
+              <a v-bind:href="image.link"><img src="/images/icon-link_x16.png" /></a>
+            </div>
+            <div v-else> - </div>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -34,11 +42,23 @@
 </template>
 
 <script>
+
 export default {
+  inject: [
+    'updateThumbnailImage',
+  ],
   props: {
     images: Array,  // Array of ImageInfo
   },
   methods: {
+    mouseover: function(image){
+      console.debug("mouseover");
+      this.updateThumbnailImage(image.url);
+    },
+    mouseleave: function(image){
+      console.debug("mouseleave");
+      this.updateThumbnailImage(null);
+    }
   }
 }
 </script>
@@ -74,7 +94,7 @@ table {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    padding: 1px 4px;
+    padding: 3px 4px;
     
     &:nth-child(2), &:nth-child(3), &:nth-child(4){
       text-align: center;
