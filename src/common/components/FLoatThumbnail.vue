@@ -1,6 +1,6 @@
 <template>
-  <div class="float">
-    <div v-if="imageUrl != null" class="img-wrapper">
+  <div v-if="imageUrl" class="float">
+    <div class="img-wrapper">
       <img v-bind:src="imageUrl" />
     </div>
   </div>
