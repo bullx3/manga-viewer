@@ -42,7 +42,7 @@
         },
         "description": "Change MangaViewer"
     },
-    "_execute_browser_action":{
+    "_execute_page_action":{
         "suggested_key": {
             "default": "Ctrl+Shift+L",
             "mac": "Command+Shift+L"

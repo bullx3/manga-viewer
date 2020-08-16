@@ -38,7 +38,7 @@ browser.contextMenus.onClicked.addListener((info)=>{
 /**
  * manifest.jsonで指定したcommandのショートカットを入力すると呼び出される
  */
-chrome.commands.onCommand.addListener((command) => {
+browser.commands.onCommand.addListener((command) => {
   console.log('Command:', command);
   if(command == "change_image_preview"){
     executeViewer(null);
@@ -46,11 +46,11 @@ chrome.commands.onCommand.addListener((command) => {
 });
 
 // page action判定
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
+browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
   // Show page action http or https
   if (changeInfo.status == "complete"){
       if (tab.url.indexOf("https://") === 0 || tab.url.indexOf("http://") === 0){
-        chrome.pageAction.show(tabId);
+        browser.pageAction.show(tabId);
       }
   }
 });
