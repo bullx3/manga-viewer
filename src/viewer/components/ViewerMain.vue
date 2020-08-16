@@ -48,6 +48,7 @@ export default {
   ],
   props: {
     images: Array,  // フィルタリングされていない(判定はされている)ImageManagerの配列
+    filterImages: Array,
     viewConfig: Object,
     title: String,
     filterConfig: Object,
@@ -69,10 +70,10 @@ export default {
     }
   },
   watch: {
-    filteringResult: function(){
-      console.debug("watch filteringResult");
+    filterImages: function(){
+      console.debug("watch filterImages");
       this.rebuildViewPages();
-    }
+    },
   },
   created: function(){
     console.log("ViewerMain created");
@@ -132,8 +133,8 @@ export default {
             this.viewPages[this.currentPage].show = false;
             this.viewPages[this.currentPage+1].show = true;
             this.currentImagePage += this.viewConfig.numberOfPage;
-            if(this.currentImagePage > this.filteringResult.images.length - 1){
-              this.currentImagePage = this.filteringResult.images.length - 1;
+            if(this.currentImagePage > this.filterImages.length - 1){
+              this.currentImagePage = this.filterImages.length - 1;
             }
           }
           break;
@@ -145,7 +146,7 @@ export default {
             this.currentImagePage -= this.viewConfig.numberOfPage;
             if(this.currentImagePage < 0){
               this.beforeBlank = 0;
-              this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, 0);
+              this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, 0);
               this.currentImagePage = 0;
               this.viewPages[0].show = true;
             }
@@ -153,24 +154,24 @@ export default {
           break
         case "ArrowDown":
           // 一枚進む
-          console.debug("before",this.currentImagePage, this.filteringResult.images.length);
-          if(this.currentImagePage < this.filteringResult.images.length - 1){
+          console.debug("before",this.currentImagePage, this.filterImages.length);
+          if(this.currentImagePage < this.filterImages.length - 1){
             if(this.beforeBlank < this.viewConfig.numberOfPage - 1){
               this.beforeBlank++;
             }else{
               this.beforeBlank = 0;
             }
             console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, this.beforeBlank);
+            this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, this.beforeBlank);
             this.currentImagePage++;
             console.debug("currentPage", this.currentPage);
             this.viewPages[this.currentPage].show = true;
           }
-          console.debug("after",this.currentImagePage, this.filteringResult.images.length);
+          console.debug("after",this.currentImagePage, this.filterImages.length);
           break;
         case "ArrowUp":
           // 一枚戻る
-          console.debug("before", this.currentImagePage, this.filteringResult.images.length);
+          console.debug("before", this.currentImagePage, this.filterImages.length);
           if(this.currentImagePage > 0){
             if(this.beforeBlank > 0){
               this.beforeBlank--;
@@ -178,12 +179,12 @@ export default {
               this.beforeBlank = this.viewConfig.numberOfPage - 1;
             }
             console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, this.beforeBlank);
+            this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, this.beforeBlank);
             this.currentImagePage--;
             console.debug("currentPage", this.currentPage);
             this.viewPages[this.currentPage].show = true;
           }
-          console.debug("after", this.currentImagePage, this.filteringResult.images.length);
+          console.debug("after", this.currentImagePage, this.filterImages.length);
           break;
         case "1":
           if(this.viewConfig.numberOfPage !== 1){
@@ -242,7 +243,8 @@ export default {
       console.log("changeNumberOfPage", newNum);
 
       this.notifyChangeNumberOfPage(newNum);
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, newNum, 0);
+      // 現在のページを維持する為にここでviewPageの更新を行う
+      this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, newNum, 0);
 
       // プロパティ numberOfPageが更新されてからの判定が必要となる為、次の描画処理で実行
       this.$nextTick(function(){
@@ -256,7 +258,7 @@ export default {
       console.log("ViewerMain rebuildViewPages");
       // viewPagesを更新することで最新の情報で再描画を行う
       this.currentImagePage = 0;
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.filteringResult.images, this.viewConfig.numberOfPage, 0);
+      this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, 0);
       if(this.viewPages.length > 0){
         this.viewPages[this.currentPage].show = true;
       }

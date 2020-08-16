@@ -6,7 +6,8 @@
     </div>
     <div v-else>
       <ViewerMain
-        v-bind:images="imageManager.images"
+        v-bind:images="images"
+        v-bind:filter-images="filterImages"
         v-bind:title="title"
         v-bind:filter-config="filterConfig"
         v-bind:view-config="viewConfig"
@@ -36,14 +37,17 @@ export default {
   },
   components: {
     ViewerMain,
-    // MenuDialog,
     FilterIndicator,
   },
   data: function() {
     return {
+      // コントロール系のクラスインスタンス、基本的にバインドはしないようにする
       config: null,   // Instance of Config class
-      title: "",
       imageManager: null, // Instance of ImageManager class
+
+      // ↓リアクティブで表示を切り替えれるように意識して更新
+      title: "",
+      images: [],
       filterConfig: { // リアクティブによる更新により入力画面が更新される
         check: true,
         width: 0,
@@ -56,8 +60,8 @@ export default {
         isShowImagePage: true,
         isShowLink: true,
       },
+      filterImages: [],
       filteringResult: {
-        images: [],
         matchCount: 0, // フィルタに一致した画像数
         totalCount: 0, // フィルタリングする前の画像数
         errorCount: 0, // 解析失敗した画像数
@@ -94,7 +98,9 @@ export default {
 
       console.debug(this.imageManager.images);
 
-      this.reRenderingViewerMain();
+      this.reRenderingImages();
+      this.reRenderingFilteringImages();
+      this.reRenderingFilteringResult();
 
       this.isFinishAnalyze = true;
 
@@ -124,6 +130,9 @@ export default {
     // provivide関数
     actionChangeViewer: function(){
       console.log("viewer App actionChangeViewer");
+      // ビュアー表示実行
+      // -> 設定は保存(filter,view両方)
+      // -> Viewr画面はすべて更新
 
       // 設定保存
       this.config.save();
@@ -131,7 +140,9 @@ export default {
 
       // ダイアログを消して画面を再構築
       this.$refs.viewerMain.closeMenuDialog();
-      this.reRenderingViewerMain();
+      this.reRenderingImages();
+      this.reRenderingFilteringImages();
+      this.reRenderingFilteringResult();
     },
     // provivide関数
     actionInitializeConfig: function(){
@@ -147,7 +158,10 @@ export default {
       // フィルタ設定画面を更新
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
-      this.reRenderingViewerMain();
+
+      this.reRenderingImages();
+      this.reRenderingFilteringImages();
+      this.reRenderingFilteringResult();
     },
     // provivide関数
     updateFilterSettingValue: function(filter){
@@ -157,13 +171,17 @@ export default {
 
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
+
+      this.reRenderingImages();
+      // filterImagesは更新しない
+      this.reRenderingFilteringResult();
     },
     // provide関数
     updateViewSettingValue: function(view){
       console.debug("viewer App updateViewSettingValue");
 
       this.config.view = view;
-      this.viewConfig = this.config.view.toObject();
+      // this.viewConfigは更新しないことでキャンセルした（ダイアログを閉じた）時に表示を更新しないようにする
     },
     // provide関数
     loadConfig: async function(){
@@ -179,17 +197,21 @@ export default {
       this.filterConfig = this.config.filter.toObject();
       this.viewConfig = this.config.view.toObject();
     },
-    reRenderingViewerMain: function(){
-      console.log("reRenderingViewerMain");
+    reRenderingFilteringResult: function(){
+      console.log("reRenderingFilteringResult");
       this.filteringResult = {
-        images: this.imageManager.filterImages,
         matchCount: this.imageManager.matchCount,
         totalCount: this.imageManager.imageCount,
         errorCount: this.imageManager.errorCount,
       }
       console.debug("filteringResult", this.filteringResult);
-
     },
+    reRenderingImages: function(){
+      this.images = this.imageManager.images;
+    },
+    reRenderingFilteringImages: function(){
+      this.filterImages = this.imageManager.filterImages;
+    }
   },
 }
 </script>

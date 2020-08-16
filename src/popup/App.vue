@@ -42,8 +42,11 @@ export default {
   },
   data: function() {
     return {
+      // コントロール系のクラスインスタンス、基本的にバインドはしないようにする
       config: null,
       imageManager: null,
+
+      // ↓リアクティブで表示を切り替えれるように意識して更新
       isFinishAnalyze: false,
       filterConfig: { // リアクティブによる更新により入力画面が更新される
         check: true,
@@ -58,7 +61,6 @@ export default {
         isShowLink: true,
       },
       filteringResult: {
-        images: [],
         matchCount: 0, // フィルタに一致した画像数
         totalCount: 0, // フィルタリングする前の画像数
         errorCount: 0, // 解析失敗した画像数
@@ -91,7 +93,7 @@ export default {
       this.imageManager.updateFilterCheck(this.config.filter);
 
       // 画像リスト更新
-      this.reRenderingImageList();
+      this.reRenderingFilteringResult();
 
       this.isFinishAnalyze = true;
 
@@ -146,7 +148,7 @@ export default {
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
 
-      this.reRenderingImageList();
+      this.reRenderingFilteringResult();
     },
     updateFilterSettingValue: function(filter){
       // 子 -> 親通知.子コンポーネントからフィルタ設定の値が変更されたことを通知
@@ -155,6 +157,7 @@ export default {
 
       // フィルタチェックを更新することでリスト表示を更新
       this.imageManager.updateFilterCheck(this.config.filter);
+      this.reRenderingFilteringResult();
     },
     updateViewSettingValue: function(view){
       this.config.view = view;
@@ -164,9 +167,8 @@ export default {
       this.filterConfig = this.config.filter.toObject();
       this.viewConfig = this.config.view.toObject();
     },
-    reRenderingImageList: function() {
+    reRenderingFilteringResult: function() {
       this.filteringResult = {
-        images: this.imageManager.filterImages,
         matchCount: this.imageManager.matchCount,
         totalCount: this.imageManager.imageCount,
         errorCount: this.imageManager.errorCount,
