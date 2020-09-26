@@ -1,10 +1,10 @@
 <template>
   <div v-if="!imageInfo.isBlank" class="img-area">
-    <img v-bind:src="imageInfo.url" v-bind:style="styleObject" />
+    <img :src="imageInfo.url" :style="styleObject" />
     <div v-if="viewConfig.isShowImagePage" class="img-page">{{pageIndex+1}} p</div>
     <div v-if="viewConfig.isShowImageSize" class="img-info">{{imageInfo.width}} x {{imageInfo.height}}</div>
     <div v-if="imageInfo.isLink && viewConfig.isShowLink" class="img-link">
-      <a v-bind:href="imageInfo.link"><img src="/images/icon-link_x64.png" /></a>
+      <a :href="imageInfo.link"><img src="/images/icon-link_x64.png" /></a>
     </div>
   </div>
 </template>
@@ -14,17 +14,17 @@ export default {
   props: {
     imageInfo: Object,
     pageIndex: Number,
-    rapWidth: Number,
-    rapHeight: Number,
+    wrapWidth: Number,
+    wrapHeight: Number,
     viewConfig: Object,
   },
   computed: {
     styleObject: function(){
-      let scale_horizon = this.rapWidth / this.imageInfo.width;
-      let scale_vertical = this.rapHeight / this.imageInfo.height;
-      return scale_horizon < scale_vertical
-       ? {width: this.rapWidth + "px", "margin-top": Math.floor((this.rapHeight - scale_horizon * this.imageInfo.height) / 2) + "px"}
-       : {height: this.rapHeight + "px"};
+      let scaleHorizon = this.wrapWidth / this.imageInfo.width;
+      let scaleVertical = this.wrapHeight / this.imageInfo.height;
+      return scaleHorizon < scaleVertical
+       ? {width: this.wrapWidth + "px", "margin-top": Math.floor((this.wrapHeight - scaleHorizon * this.imageInfo.height) / 2) + "px"}
+       : {height: this.wrapHeight + "px"};
     },
   }
 }
@@ -66,8 +66,8 @@ export default {
   color: cornflowerblue;
 
   img {
-    width:1.5em;
-    height:1.5em;
+    width:1.5rem;
+    height:1.5rem;
   }
 }
 

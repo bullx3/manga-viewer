@@ -1,33 +1,33 @@
 <template>
   <div v-if="viewConfig.numberOfPage===1" class="view-page">
-    <div class="image-wrap-center" v-bind:style="styleObjectImageWrap">
+    <div class="image-wrap-center" :style="styleObjectImageWrap">
       <ViewerPageImage
-        v-bind:page-index="pageImages[0].index"
-        v-bind:image-info="pageImages[0].imageInfo"
-        v-bind:rap-width="rapWidth"
-        v-bind:rap-height="rapHeight"
-        v-bind:view-config="viewConfig"
+        :page-index="pageImages[0].index"
+        :image-info="pageImages[0].imageInfo"
+        :wrap-width="wrapWidth"
+        :wrap-height="wrapHeight"
+        :view-config="viewConfig"
       />
     </div>
   </div>
 
   <div v-else-if="viewConfig.numberOfPage===2" class="view-page">
-    <div class="image-wrap-left" v-bind:style="styleObjectImageWrap">
+    <div class="image-wrap-left" :style="styleObjectImageWrap">
       <ViewerPageImage
-        v-bind:page-index="pageImages[1].index"
-        v-bind:image-info="pageImages[1].imageInfo"
-        v-bind:rap-width="rapWidth"
-        v-bind:rap-height="rapHeight"
-        v-bind:view-config="viewConfig"
+        :page-index="pageImages[1].index"
+        :image-info="pageImages[1].imageInfo"
+        :wrap-width="wrapWidth"
+        :wrap-height="wrapHeight"
+        :view-config="viewConfig"
       />
     </div>
-    <div class="image-wrap-right" v-bind:style="styleObjectImageWrap">
+    <div class="image-wrap-right" :style="styleObjectImageWrap">
       <ViewerPageImage
-        v-bind:page-index="pageImages[0].index"
-        v-bind:image-info="pageImages[0].imageInfo"
-        v-bind:rap-width="rapWidth"
-        v-bind:rap-height="rapHeight"
-        v-bind:view-config="viewConfig"
+        :page-index="pageImages[0].index"
+        :image-info="pageImages[0].imageInfo"
+        :wrap-width="wrapWidth"
+        :wrap-height="wrapHeight"
+        :view-config="viewConfig"
       />
     </div>
   </div>
@@ -48,14 +48,14 @@ export default {
     pageHeight: Number,
   },
   computed: {
-    rapWidth: function(){
+    wrapWidth: function(){
       return Math.floor(this.pageWidth / this.viewConfig.numberOfPage);
     },
-    rapHeight: function(){
+    wrapHeight: function(){
       return this.pageHeight;
     },
     styleObjectImageWrap(){
-     return {width: this.rapWidth + 'px', height: this.rapHeight + 'px'}
+     return {width: this.wrapWidth + 'px', height: this.wrapHeight + 'px'}
     },
   },
 }
@@ -64,6 +64,7 @@ export default {
 <style lang="scss" scoped>
 .view-page {
   display: table;
+  background-color: #f5f5f5;
 }
 
 .image-wrap{

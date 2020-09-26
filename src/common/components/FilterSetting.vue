@@ -1,46 +1,42 @@
 <template>
   <div>
-    <div class="show-options">
-      <h3>表示オプション</h3>
-      <div>
-        1ページの画像数
-        <select v-model.number="selectedNumberOfPage">
-          <option value="1">１</option>
-          <option value="2">２ (見開き)</option>
-        </select>
+    <div class="mb-3">
+      <h4>フィルタリング</h4>
+      <div class="mb-2">
+        <b-form-checkbox v-model="filterCheck">
+          画像サイズでフィルタリング(c)
+        </b-form-checkbox>
       </div>
-      <div>
-        <ul>
-          <li>
-            <input type="checkbox" v-model="checkShowTitle" id="show-title">
-            <label for="show-title">タイトル</label>
-          </li>
-          <li>
-            <input type="checkbox" v-model="checkShowImageSize" id="show-size">
-            <label for="show-size">画像サイズ</label>
-          </li>
-          <li>
-            <input type="checkbox" v-model="checkShowImagePage" id="show-page">
-            <label for="show-page">ページ</label>
-          </li>
-          <li>
-            <input type="checkbox" v-model="checkShowLink" id="show-link">
-            <label for="show-link">リンク</label>
-          </li>
-        </ul>
+      <div class="mb-2">
+        <transition name="test">
+        <div class="d-inline-block w-30 input-transition">
+          <b-input-group prepend="幅" size="sm">
+            <b-form-input
+              v-model.number="inputWidth"
+              size="sm"
+              type="number" step="100" min="0" max="100000"
+              :disabled="inputDisabled"
+              :class="{'test-transition-changed': isChanged}"
+            ></b-form-input>
+          </b-input-group>
+        </div>
+        </transition>
+        &nbsp;×&nbsp;
+        <div class="d-inline-block w-30 input-transition">
+          <b-input-group prepend="高" size="sm">
+            <b-input
+              v-model.number="inputHeight"
+              size="sm"
+              type="number" step="100" min="0" max="100000"
+              :disabled="inputDisabled"
+            ></b-input>
+          </b-input-group>
+        </div>
       </div>
-    </div>
-    <hr>
-    <div class="input-filter">
-      <h3>フィルタリング</h3>
-      <input type="checkbox" v-model="filterCheck">
-      <input type="number" v-model.number="inputWidth" step="100" min="0" max="100000">
-      &nbsp;×&nbsp;
-      <input type="number" v-model.number="inputHeight" step="100" min="0" max="100000">
-    </div>
-    <div class="action">
-      <button v-on:click="changeViewer">ビュアー表示(o)</button>
-      <button v-on:click="initializeConfig">初期化</button>
+      <div class="mb-3">
+        <b-button variant="success" @click="changeViewer">ビュアー表示(o)</b-button>
+        <b-button variant="secondary" @click="initializeConfig">初期化</b-button>
+      </div>
     </div>
   </div>
 </template>
@@ -48,29 +44,29 @@
 
 <script>
 import {FilterConfig} from "../config"
-import {ViewConfig} from "../config"
 
 export default {
   props: {
     filterConfig: Object,
-    viewConfig: Object,
   },
   inject: [
     'actionChangeViewer',
     'actionInitializeConfig',
     'updateFilterSettingValue',
-    'updateViewSettingValue',
   ],
   data: function() {
     return {
       filterCheck: this.filterConfig.check,
       inputWidth: this.filterConfig.width,
       inputHeight: this.filterConfig.height,
-      selectedNumberOfPage: this.viewConfig.numberOfPage,
-      checkShowTitle: this.viewConfig.isShowTitle,
-      checkShowImageSize: this.viewConfig.isShowImageSize,
-      checkShowImagePage: this.viewConfig.isShowImagePage,
-      checkShowLink: this.viewConfig.isShowLink,
+    }
+  },
+  computed: {
+    inputDisabled: function(){
+      return !this.filterCheck;
+    },
+    inputStyle: function(){
+      this.isChanged = !this.isChanged;
     }
   },
   mounted: function(){
@@ -95,17 +91,21 @@ export default {
           break;
         case "ArrowUp":
           // width/heightとも100づつアップする(フォーカスがあたってる状態だと二重に上がってしまうがとりあえず仕様とする)
-          this.inputWidth += 100;
-          this.inputHeight += 100;
+          if(event.shiftKey){
+            this.inputWidth += 100;
+            this.inputHeight += 100;
+          }
           break;
         case "ArrowDown":
-          this.inputWidth -= 100;
-          if(this.inputWidth < 0){
-            this.inputWidth = 0;
-          }
-          this.inputHeight -= 100;
-          if(this.inputHeight < 0){
-            this.inputHeight = 0;
+          if(event.shiftKey){
+            this.inputWidth -= 100;
+            if(this.inputWidth < 0){
+              this.inputWidth = 0;
+            }
+            this.inputHeight -= 100;
+            if(this.inputHeight < 0){
+              this.inputHeight = 0;
+            }
           }
           break;
         default:
@@ -136,80 +136,31 @@ export default {
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
       this.updateFilterSettingValue(filter);
     },
-    notifyViewChanged: function(){
-      console.debug("FilterSetting notifyViewChanged");
-      let view = new ViewConfig();
-      view.numberOfPage = this.selectedNumberOfPage;
-      view.isShowTitle = this.checkShowTitle;
-      view.isShowImageSize = this.checkShowImageSize;
-      view.isShowImagePage = this.checkShowImagePage;
-      view.isShowLink = this.checkShowLink;
-
-      this.updateViewSettingValue(view);
-    }
   },
   watch: {
     filterCheck: function(){this.notifyFilterChanged()},
     inputWidth: function(){this.notifyFilterChanged()},
     inputHeight: function(){this.notifyFilterChanged()},
-
-    selectedNumberOfPage: function(){this.notifyViewChanged()},
-    checkShowTitle: function(){this.notifyViewChanged()},
-    checkShowImageSize: function(){this.notifyViewChanged()},
-    checkShowImagePage: function(){this.notifyViewChanged()},
-    checkShowLink: function(){this.notifyViewChanged()},
-
     filterConfig: function(){
       console.debug("watch FilterSetting filterConfig");
       this.filterCheck = this.filterConfig.check;
       this.inputWidth = this.filterConfig.width;
       this.inputHeight = this.filterConfig.height;
     },
-    viewConfig: function(){
-      console.debug("watch FilterSetting viewConfig");
-      this.selectedNumberOfPage = this.viewConfig.numberOfPage;
-      this.checkShowTitle = this.viewConfig.isShowTitle;
-      this.checkShowImageSize = this.viewConfig.isShowImageSize;
-      this.checkShowImagePage = this.viewConfig.isShowImagePage;
-      this.checkShowLink = this.viewConfig.isShowLink;
-    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
 
-* {
-  margin: 0;
-  padding: 0;
-}
-.input-filter {
-  margin: 5px 0;
+@import '../../common.scss';
 
-  input[type="number"] {
-    display: inline-block;
-    max-width: 4em;
-  }
+.input-transition{
+  @extend .my-ripple-out;
 }
 
-.action {
-  margin: 5px;
-  
-  button {
-    background-color: lightblue;
-  }
+.input-transition:hover:before, .input-transition:focus:before, .input-transition:active:before {
+  animation-name: my-ripple-out;
 }
 
-.show-options {
-  > div {
-    margin: 4px 0 4px 0;
-  }
-  select {
-    height: 1.5em;
-  }
-  li{
-    display: inline-block;
-  }
-
-}
 </style>
