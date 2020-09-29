@@ -16,7 +16,7 @@
               size="sm"
               type="number" step="100" min="0" max="100000"
               :disabled="inputDisabled"
-              :class="{'test-transition-changed': isChanged}"
+              id="input-width"
             ></b-form-input>
           </b-input-group>
         </div>
@@ -29,6 +29,7 @@
               size="sm"
               type="number" step="100" min="0" max="100000"
               :disabled="inputDisabled"
+              id="input-height"
             ></b-input>
           </b-input-group>
         </div>
@@ -44,6 +45,7 @@
 
 <script>
 import {FilterConfig} from "../config"
+import gsap from "gsap";
 
 export default {
   props: {
@@ -65,9 +67,6 @@ export default {
     inputDisabled: function(){
       return !this.filterCheck;
     },
-    inputStyle: function(){
-      this.isChanged = !this.isChanged;
-    }
   },
   mounted: function(){
     console.log("ViewerMain mounted");
@@ -136,11 +135,23 @@ export default {
       filter.setFilter(this.filterCheck, this.inputWidth, this.inputHeight);
       this.updateFilterSettingValue(filter);
     },
+    animateChangeValue(target){
+      gsap.fromTo(target, 
+        {color: '#000000'},
+        {color: '#ff6347', fontWeight: 'bold', duration:1}
+      );
+    }
   },
   watch: {
     filterCheck: function(){this.notifyFilterChanged()},
-    inputWidth: function(){this.notifyFilterChanged()},
-    inputHeight: function(){this.notifyFilterChanged()},
+    inputWidth: function(){
+      this.animateChangeValue('#input-width');
+      this.notifyFilterChanged();
+    },
+    inputHeight: function(){
+      this.animateChangeValue('#input-height');
+      this.notifyFilterChanged();
+    },
     filterConfig: function(){
       console.debug("watch FilterSetting filterConfig");
       this.filterCheck = this.filterConfig.check;
