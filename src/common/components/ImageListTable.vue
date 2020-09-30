@@ -1,23 +1,23 @@
 <template>
   <div>
-    <table>
-      <thead>
+    <table class="table table-custom table-bordered">
+      <thead class="thead-light">
         <tr>
           <th>ファイル名</th>
           <th>幅</th>
-          <th>高さ</th>
-          <th>リンク</th>
+          <th>高</th>
+          <th>Link</th>
         </tr>
       </thead>
       <tbody>
         <tr 
           v-for="(image, index) in images"
-          v-bind:key="index"
-          v-bind:class="{ 'no-match-tr' : !image.isMatch}"
+          :key="index"
+          :class="{ 'no-match-tr' : !image.isMatch}"
         >
-          <td v-on:mouseover="mouseover(image)" v-on:mouseleave="mouseleave(image)">
-            <div v-if="image.isBlank" class="error">No name</div>
-            <div v-else-if="!image.isValid" class="error">{{image.filename}}</div>
+          <td @mouseover="mouseover(image)" @mouseleave="mouseleave(image)">
+            <div v-if="image.isBlank" class="text-danger">No name</div>
+            <div v-else-if="!image.isValid" class="text-danger">{{image.filename}}</div>
             <div v-else>{{image.filename}}</div>
           </td>
           <td>
@@ -30,7 +30,7 @@
           </td>
           <td>
             <div v-if="image.isLink">
-              <a v-bind:href="image.link"><img src="/images/icon-link_x16.png" /></a>
+              <a :href="image.link"><img src="/images/icon-link_x16.png" /></a>
             </div>
             <div v-else> - </div>
           </td>
@@ -65,32 +65,25 @@ export default {
 
 <style lang="scss" scoped>
 
-table {
+.table-custom {
   table-layout: fixed;
   border-collapse: collapse; /* 一重線 */
   width: 100%;
 
   th {
-    background-color: grey;
-    border: 1px solid white;
-    color: white;
-
+    text-align: center;
     &:nth-child(1){
-      width: 60%;
+      width: 55%;
     }
     &:nth-child(2), &:nth-child(3){
       width: 15%;
     }
     &:nth-child(4){
-      width: 10%;
+      width: 15%;
     }
-
   }
 
-
   td{
-    font-size: 0.8em;
-    border: 1px solid gray;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -100,10 +93,6 @@ table {
       text-align: center;
     }
   }
-
-  img {
-    height: 0.8em;
-  }
 }
 
 .no-match-tr{
@@ -111,7 +100,4 @@ table {
   color: white;
 }
 
-.error {
-  color: red;
-}
 </style>

@@ -17,6 +17,9 @@
     "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
   },
   "dependencies": {
+    "bootstrap": "^4.5.2",
+    "bootstrap-vue": "^2.16.0",
+    "gsap": "^3.5.1",
     "vue": "^2.6.10",
     "webextension-polyfill": "^0.3.1"
   },

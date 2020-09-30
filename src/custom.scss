@@ -1,0 +1,7 @@
+// カスタム設定はここに記載(bootstrapのimport前に記載)
+
+$font-size-base: 0.75rem;
+
+@import 'node_modules/bootstrap/scss/bootstrap';
+@import 'node_modules/bootstrap-vue/src/index.scss';
+

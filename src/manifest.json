@@ -9,8 +9,8 @@
     "32": "icons/icon_32x32.png",
     "64": "icons/icon_64x64.png",
     "128": "icons/icon_128x128.png"
-},
-"permissions": [
+  },
+  "permissions": [
     "tabs",
     "contextMenus",
     "storage",

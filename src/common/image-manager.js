@@ -50,16 +50,25 @@ class ImageManager {
     this._matchCount = 0;
     if(filter.check){
       this._images.forEach(image => {
-        image.isMatch = image.checkMatch(filter.width, filter.height);
-        if(image.isMatch){
-          this._matchCount++;
+        if(image.isValid){
+          image.isMatch = image.checkMatch(filter.width, filter.height);
+          if(image.isMatch){
+            this._matchCount++;
+          }
+        }else{
+          image.isMatch = false;
         }
       });
     }else{
-      // 無条件ですべてmatchにする
+      // 有効である限り無条件ですべてmatchにする
       this._images.forEach(image => {
-        image.isMatch = true
-        this._matchCount++;
+        if(image.isValid){
+          image.isMatch = true
+          this._matchCount++;  
+        }else{
+          image.isMatch = false;
+        }
+      
       });
     }
   }
