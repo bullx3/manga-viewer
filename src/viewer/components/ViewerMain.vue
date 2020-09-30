@@ -3,31 +3,33 @@
     <div class="viewer-menu">
       <ul>
         <li>
-          <p>
-            {{filteringResult.matchCount === 0 ? 0 : currentImagePage+1}} / {{filteringResult.matchCount}} p
-            ({{filteringResult.totalCount}}
-            <span v-if="filteringResult.errorCount > 0" class="error">(エラー {{filteringResult.errorCount}})</span>)
-          </p>
+          <FilterResult :filtering-result="filteringResult" />
         </li>
-        <li v-if="viewConfig.isShowTitle"><p>{{ title }}</p></li>
-        <li><button v-on:click="openMenuDialog">Menu</button></li>
+        <li v-if="filteringResult.matchCount !== 0">
+          <b-progress :max="filteringResult.matchCount">
+            <b-progress-bar variant="primary" :value="currentImagePage+1" show-value></b-progress-bar>
+            <b-progress-bar variant="dark" :value="filteringResult.matchCount - currentImagePage - 1"></b-progress-bar>
+          </b-progress>
+        </li>
+        <li v-if="viewConfig.isShowTitle"><div>{{ title }}</div></li>
+        <li><b-button @click="openMenuDialog">Menu</b-button></li>
       </ul>
     </div>
-    <MenuDialog
-      v-if="isMenuDialogShow"
-      v-bind:filter-config="filterConfig"
-      v-bind:view-config="viewConfig"
-      v-bind:images="images"
-      v-bind:filtering-result="filteringResult"
-      v-on:close-dialog="closeMenuDialog"
-    />
+    <b-modal id="modal-menu-dialog" title="Menu" size="xl" hide-footer>
+      <MenuDialog
+        :filter-config="filterConfig"
+        :view-config="viewConfig"
+        :images="images"
+        :filtering-result="filteringResult"
+      />
+    </b-modal>
     <ViewerPage
       v-for="(viewPage, index) in viewPages"
-      v-bind:key="index"
-      v-bind:view-config="viewConfig"
-      v-bind:page-images="viewPage.pageImages"
-      v-bind:page-width="pageWidth"
-      v-bind:page-height="pageHeight"
+      :key="index"
+      :view-config="viewConfig"
+      :page-images="viewPage.pageImages"
+      :page-width="pageWidth"
+      :page-height="pageHeight"
       v-show="viewPage.show"
     />
   </div>
@@ -37,11 +39,13 @@
 import ImageInfo from '../../common/image-info'
 import ViewerPage from './ViewerPage.vue'
 import MenuDialog from './MenuDialog.vue'
+import FilterResult from'../../common/components/FilterResult.vue'
 
 export default {
   components: {
     ViewerPage,
     MenuDialog,
+    FilterResult,
   },
   inject:[
     "loadConfig",
@@ -100,9 +104,11 @@ export default {
       // load自体は非同期なのでダイアログオープン前にオープンしていまうがload完了後に再描画が行われるようにする
       this.loadConfig();
       this.isMenuDialogShow = true;
+      this.$bvModal.show("modal-menu-dialog");
     },
     closeMenuDialog: function(){
       console.log("Viewer App closeMenuDialog");
+      this.$bvModal.hide("modal-menu-dialog");
       this.isMenuDialogShow = false;
     },
     onResize: function(){
@@ -119,7 +125,6 @@ export default {
         // ダイアログ表示中はメニューを閉じるキーのみうけつける
         switch(keyName){
           case "m":
-          case "Escape":
             this.closeMenuDialog();
             break;
         }
@@ -270,6 +275,7 @@ export default {
 
 <style lang="scss" scoped>
 .viewer-menu {
+  width:200px;
   position: absolute;
   z-index: 200;
   top: 0;

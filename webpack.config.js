@@ -92,7 +92,21 @@ const config = {
 
           if (config.mode === 'development') {
             jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval'; object-src 'self'";
-          }
+
+            // 個人的にdevelopモードの場合に変える内容
+            jsonContent['name'] = jsonContent['name'] + '-develop';
+            jsonContent['icons'] = 
+              {
+                "16": "icons/icon-develop.png",
+                "32": "icons/icon-develop.png",
+                "64": "icons/icon-develop.png",
+                "128": "icons/icon-develop.png"
+              };
+              jsonContent['commands']['change_image_preview']['suggested_key']['default'] = 'Ctrl+Shift+I';
+              jsonContent['commands']['change_image_preview']['suggested_key']['mac'] = 'Command+Shift+I';
+              jsonContent['commands']['_execute_page_action']['suggested_key']['default'] = 'Ctrl+Shift+K';
+              jsonContent['commands']['_execute_page_action']['suggested_key']['mac'] = 'Command+Shift+K';
+            }
 
           return JSON.stringify(jsonContent, null, 2);
         },

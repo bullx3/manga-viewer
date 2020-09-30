@@ -1,35 +1,53 @@
 <template>
-  <div style="width: 300px;">
-    <p>{{title}}</p>
-    <hr>
-    <FilterSetting
-      v-bind:filter-config="filterConfig"
-      v-bind:view-config="viewConfig"
-    />
-    <hr>
-    <FilterIndicator v-if="!isFinishAnalyze" v-bind:progress="progress" />
-    <FilterResult v-else v-bind:filtering-result="filteringResult" />
-    <ImageListTable v-bind:images="imageManager.images" />
-    <FloatThumbnail v-bind:image-url="thumnailUrl" />
-  </div>
+  <b-container>
+    <b-row>
+      <b-col cols="6">
+        <div class="mt-3 font-weight-bold">{{title}}</div>
+        <hr>
+        <ShowSetting v-if="isFinishLoadingShowSetting"
+          :view-config="viewConfig"
+        />
+        <hr>
+        <FilterSetting v-if="isFinishLoadingFilterSetting"
+          :filter-config="filterConfig"
+        />
+        <div v-else class="text-center">
+          <b-spinner v-if="!isFinishLoadingFilterSetting"></b-spinner>
+        </div>
+        <hr>
+        <FilterIndicator v-if="!isFinishAnalyze" :progress="progress" />
+        <FilterResult v-else :filtering-result="filteringResult" />
+        <div class="mb-2"></div>
+        <ImageListTable :images="imageManager.images" />
+        <FloatThumbnail :image-url="thumnailUrl" />
+      </b-col>
+      <b-col cols="6">
+        <ThumbnailList :images="imageManager.filterImages"></ThumbnailList>
+      </b-col>
+    </b-row>
+  </b-container>
 </template>
 
 <script>
 import Config from '../common/config'
 import ImageManager from '../common/image-manager'
 import FilterSetting from '../common/components/FilterSetting.vue'
+import ShowSetting from '../common/components/ShowSetting.vue'
 import FilterIndicator from '../common/components/FilterIndicator.vue'
 import FilterResult from '../common/components/FilterResult.vue'
 import ImageListTable from '../common/components/ImageListTable.vue'
 import FloatThumbnail from '../common/components/FLoatThumbnail.vue'
+import ThumbnailList from '../common/components/ThumbnailList.vue'
 
 export default {
   components: {
     FilterSetting,
+    ShowSetting,
     FilterResult,
     FilterIndicator,
     ImageListTable,
     FloatThumbnail,
+    ThumbnailList,
   },
   provide: function(){
     return {
@@ -48,6 +66,8 @@ export default {
 
       // ↓リアクティブで表示を切り替えれるように意識して更新
       isFinishAnalyze: false,
+      isFinishLoadingFilterSetting: false,
+      isFinishLoadingShowSetting: false,
       filterConfig: { // リアクティブによる更新により入力画面が更新される
         check: true,
         width: 0,
@@ -85,8 +105,10 @@ export default {
 
       // 設定表示更新
       this.reRenderingSetting();
+      this.isFinishLoadingShowSetting = true;
+      this.isFinishLoadingFilterSetting = true;
 
-      //画像タグ取得 & 解析
+//画像タグ取得 & 解析
       await this.scrapingAndAnalyzeImage();
 
       // フィルタ設定による情報更新
@@ -183,7 +205,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.error {
-  color: red;
+
+hr {
+ margin: 0.5rem 0;
 }
+
 </style>

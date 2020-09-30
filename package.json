@@ -1,6 +1,6 @@
 {
   "name": "manga-viewer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Vue.js web extension",
   "author": "Tom <ryuko2010@gmail.com>",
   "license": "MIT",
@@ -17,6 +17,9 @@
     "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
   },
   "dependencies": {
+    "bootstrap": "^4.5.2",
+    "bootstrap-vue": "^2.16.0",
+    "gsap": "^3.5.1",
     "vue": "^2.6.10",
     "webextension-polyfill": "^0.3.1"
   },

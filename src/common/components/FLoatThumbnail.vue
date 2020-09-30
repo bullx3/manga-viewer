@@ -1,7 +1,7 @@
 <template>
   <div v-if="imageUrl" class="float">
     <div class="img-wrapper">
-      <img v-bind:src="imageUrl" />
+      <b-img :src="imageUrl" ></b-img>
     </div>
   </div>
 </template>
@@ -21,8 +21,9 @@ export default {
   z-index: 100;
   top: 50px;
   right: 50px;
-  width: 150px;
-  height: 150px;
+  width: 50%;
+  height: 50%;
+  background-color: grey;
 
   .img-wrapper {
     position: relative;

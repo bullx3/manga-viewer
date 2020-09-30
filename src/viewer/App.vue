@@ -1,18 +1,18 @@
 <template>
   <div>
     <div v-if="!isFinishAnalyze">
-      <FilterIndicator v-bind:progress="progress" />
+      <FilterIndicator :progress="progress" />
       <div class="analyzing">解析中</div>
     </div>
     <div v-else>
       <ViewerMain
-        v-bind:images="images"
-        v-bind:filter-images="filterImages"
-        v-bind:title="title"
-        v-bind:filter-config="filterConfig"
-        v-bind:view-config="viewConfig"
-        v-bind:filtering-result="filteringResult"
-        v-on:action-change-number-of-page="actionChangeNumberOfPage"
+        :images="images"
+        :filter-images="filterImages"
+        :title="title"
+        :filter-config="filterConfig"
+        :view-config="viewConfig"
+        :filtering-result="filteringResult"
+        @action-change-number-of-page="actionChangeNumberOfPage"
         ref="viewerMain"
       />
     </div>
