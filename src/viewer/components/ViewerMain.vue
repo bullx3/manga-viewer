@@ -15,7 +15,7 @@
         <li><b-button @click="openMenuDialog">Menu</b-button></li>
       </ul>
     </div>
-    <b-modal id="modal-menu-dialog" title="Menu" size="xl" hide-footer>
+    <b-modal id="modal-menu-dialog" title="Menu" size="xl" hide-footer @hidden="menuDialogHidden">
       <MenuDialog
         :filter-config="filterConfig"
         :view-config="viewConfig"
@@ -109,6 +109,10 @@ export default {
     closeMenuDialog: function(){
       console.log("Viewer App closeMenuDialog");
       this.$bvModal.hide("modal-menu-dialog");
+      this.isMenuDialogShow = false;
+    },
+    menuDialogHidden: function(){
+      console.log("Viewer App menuDialogHidden");
       this.isMenuDialogShow = false;
     },
     onResize: function(){
