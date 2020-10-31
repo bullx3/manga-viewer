@@ -8,30 +8,19 @@ async function executeViewer(tabId){
   console.log("finish to viewer.html");
 }
 
-browser.runtime.onInstalled.addListener(() => {
-  console.log("onInstalled.addListener")
-  // ここではcontextMenusをID付きで生成のみを行う
-  chrome.contextMenus.create({
-    "id": "newTabMangaViewer",
-    "title": "新しいタブでMangaViewerを表示",
-    "type": "normal",
-    "contexts": ["link"], // リンクのみ有効
-  });
-});
-
-browser.contextMenus.onClicked.addListener((info)=>{
-  console.log(`chrome.contextMenus.onClicked start(${info.menuItemId})`);
-  if(info.menuItemId == "newTabMangaViewer"){
-    // 選択されているリンクを新しいタブ（右隣）で開いて新しいタブはMangaViewerに遷移する。
-    // 新しいタブは非アクティブ
-    console.log("browser.contextMenus.onClicked.addListener:", info);
-
+browser.contextMenus.create({
+  "title": "新しいタブでMangaViewerを表示",
+  "type": "normal",
+  "contexts": ["link"], // リンクのみ有効
+  "onclick": (info) => {
+    console.log("onclick contextMenu");
     (async () => {
       let tabs = await browser.tabs.query({active: true, currentWindow: true});
       let tab = tabs[0];
       let newTab = await browser.tabs.create({"url": info.linkUrl, "active": false, "index": tab.index+1});
       executeViewer(newTab.id);
     })();
+
   }
 });
 
