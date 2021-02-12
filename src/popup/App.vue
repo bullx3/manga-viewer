@@ -74,7 +74,7 @@ export default {
         height: 0,
       },
       viewConfig: {
-        numberOfPage: 2,
+        numberOfPage: 0,
         isShowTitle: true,
         isShowImageSize: true,
         isShowImagePage: true,
