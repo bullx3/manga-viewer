@@ -129,7 +129,7 @@ class ViewConfig extends baseConfig {
   }
   props(){
     return [
-      {name: "numberOfPage", type: "number", init: 2},
+      {name: "numberOfPage", type: "number", init: 0},
       {name: "isShowTitle", type: "boolean", init: true},
       {name: "isShowImageSize", type: "boolean", init: true},
       {name: "isShowImagePage", type: "boolean", init: true},

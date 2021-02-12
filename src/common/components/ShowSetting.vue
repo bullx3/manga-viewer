@@ -33,6 +33,7 @@ export default {
     return {
       selectedNumberOfPage: this.viewConfig.numberOfPage,
       optionsNumberOfPage: [
+        {text: "自動(縦長見開き/横長単ページ)", value: 0 },
         {text: "単ページ", value: 1 },
         {text: "２ページ(見開き)", value: 2 },
       ],

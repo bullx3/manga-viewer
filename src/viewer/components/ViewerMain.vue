@@ -62,15 +62,10 @@ export default {
     return {
       viewPages: [],
       currentImagePage: 0,
+      currentPage: 0,
       pageWidth: window.innerWidth,
       pageHeight: window.innerHeight,
-      beforeBlank: 0,
       isMenuDialogShow: false,
-    }
-  },
-  computed: {
-    currentPage: function() {
-      return Math.floor((this.currentImagePage + this.beforeBlank) / this.viewConfig.numberOfPage);
     }
   },
   watch: {
@@ -124,7 +119,7 @@ export default {
     onKeyDown: function(){
       let keyName = event.key;
       console.debug("ViewrMain onKeyDown", keyName);
-      console.debug("currentImagePage", this.currentImagePage, "currentPage", this.currentPage, "beforeBlank", this.beforeBlank);
+      console.debug("currentImagePage", this.currentImagePage, "currentPage", this.currentPage);
       if(this.isMenuDialogShow){
         // ダイアログ表示中はメニューを閉じるキーのみうけつける
         switch(keyName){
@@ -140,137 +135,204 @@ export default {
           // 1ページ進む
           if(this.currentPage < this.viewPages.length - 1 ){
             this.viewPages[this.currentPage].show = false;
-            this.viewPages[this.currentPage+1].show = true;
-            this.currentImagePage += this.viewConfig.numberOfPage;
-            if(this.currentImagePage > this.filterImages.length - 1){
-              this.currentImagePage = this.filterImages.length - 1;
-            }
+            this.currentImagePage += this.viewPages[this.currentPage].pageImages.length;
+            this.currentPage++;
+            this.viewPages[this.currentPage].show = true;
           }
           break;
         case "ArrowRight":
           // 1ページ戻る
           if(this.currentPage > 0){
             this.viewPages[this.currentPage].show = false;
-            this.viewPages[this.currentPage-1].show = true;
-            this.currentImagePage -= this.viewConfig.numberOfPage;
-            if(this.currentImagePage < 0){
-              this.beforeBlank = 0;
-              this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, 0);
-              this.currentImagePage = 0;
-              this.viewPages[0].show = true;
-            }
+            this.currentPage--;
+            this.viewPages[this.currentPage].show = true;
+            this.currentImagePage -= this.viewPages[this.currentPage].pageImages.length; // 戻った先が複数ページがあった場合に先頭ページに合わせる。
           }
           break
         case "ArrowDown":
           // 一枚進む
-          console.debug("before",this.currentImagePage, this.filterImages.length);
           if(this.currentImagePage < this.filterImages.length - 1){
-            if(this.beforeBlank < this.viewConfig.numberOfPage - 1){
-              this.beforeBlank++;
-            }else{
-              this.beforeBlank = 0;
-            }
-            console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, this.beforeBlank);
             this.currentImagePage++;
-            console.debug("currentPage", this.currentPage);
-            this.viewPages[this.currentPage].show = true;
+            this.createViewPagesAndSetCurrentPage();
           }
-          console.debug("after",this.currentImagePage, this.filterImages.length);
           break;
         case "ArrowUp":
           // 一枚戻る
-          console.debug("before", this.currentImagePage, this.filterImages.length);
           if(this.currentImagePage > 0){
-            if(this.beforeBlank > 0){
-              this.beforeBlank--;
-            }else{
-              this.beforeBlank = this.viewConfig.numberOfPage - 1;
-            }
-            console.debug("beforeBlank:", this.beforeBlank);
-            this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, this.beforeBlank);
             this.currentImagePage--;
-            console.debug("currentPage", this.currentPage);
-            this.viewPages[this.currentPage].show = true;
+            this.createViewPagesAndSetCurrentPage();
           }
-          console.debug("after", this.currentImagePage, this.filterImages.length);
           break;
+        case "0":
         case "1":
-          if(this.viewConfig.numberOfPage !== 1){
-            this.changeNumberOfPage(1);
-          }
-          break;
         case "2":
-          if(this.viewConfignumberOfPage !== 2){
-            this.changeNumberOfPage(2);
+          const KeyToNum = {"0": 0, "1": 1, "2": 2};
+          let num = KeyToNum[keyName];
+          if(this.viewConfig.numberOfPage !== num){
+            this.changeNumberOfPage(num);
           }
           break;
         case "n":
-          let newNum = this.viewConfig.numberOfPage === 1 ? 2 : 1; // 現在は1か2だけなのでトグル扱い
-          this.changeNumberOfPage(newNum);
+          const CurrentToNew = {0: 1, 1: 2, 2:0};
+          this.changeNumberOfPage(CurrentToNew[this.viewConfig.numberOfPage]);
           break;
         case 'm':
           this.openMenuDialog();
           break;
       }
     },
-    createViewPagesWithBeforeBlank: function(images, numberOfPage, beforeBlankCount){
+    createViewPagesAndSetCurrentPage: function(){
       let pages = [];
-      let blank = new ImageInfo();
-      let blanks = new Array(beforeBlankCount).fill(blank);
-      let tempImages = blanks.concat(images);
+      let currentPage = 0;
+      if(this.viewConfig.numberOfPage === 0){
+        [pages, currentPage] = this.createViewPagesWithCurrentImagePageForAutoMode(this.filterImages, this.currentImagePage);
+      }else{
+        [pages, currentPage] = this.createViewPagesWithCurrentImagePage(this.filterImages, this.currentImagePage, this.viewConfig.numberOfPage);
+      }
 
-      let len = tempImages.length;
-      for(var i = 0; i < len; i += numberOfPage){
+      this.currentPage = currentPage;
+      if(pages.length > 0){
+        pages[this.currentPage].show = true;
+      }
+
+      this.viewPages = pages;
+    },
+    // 
+    createViewPagesWithCurrentImagePageForAutoMode: function(images, currentImagePage){
+
+      console.debug("createViewPagesWithCurrentImagePageForAutoMode start")
+      let blank = new ImageInfo();
+
+      let afterPages = []; // currentImagePage以降のページ
+      let beforePages = []; // currentImagePageの前ページ
+
+      // 現在の画像より後ページ作成
+      for(var i = currentImagePage; i < images.length; i++){
+        let pageImages = [];
+        if(images[i].width < images[i].height){
+          // 一枚目が縦長画像
+          pageImages.push({index: i , imageInfo: images[i]});
+          let next = i + 1;
+          if(next < images.length){
+            if(images[next].width < images[next].height){
+              // 次の画像が縦長画像
+              pageImages.push({index: next , imageInfo: images[next]});
+              i++;
+            }else{
+              // 次が横長画像の場合はblank画像を入れておく
+              pageImages.push({index: null , imageInfo: blank});
+            }
+          }else if(next === images.length){
+            // 最終ページの場合
+            pageImages.push({index: null , imageInfo: blank});
+          }
+        }else{
+          // 横長 or 正方形(単ページ)
+          pageImages.push({index: i , imageInfo: images[i]});
+        }
+
+        afterPages.push({show: false, pageImages: pageImages});
+      }
+
+      // 現在の画像より前ページ作成
+      for(var j = currentImagePage - 1; j >= 0; j--){
+        let pageImages = [];
+        if(images[j].width < images[j].height){
+          pageImages.push({index: j , imageInfo: images[j]});
+          let before = j - 1;
+          if(before >= 0){
+            if(images[before].width < images[before].height){
+              // 次の画像が縦長画像
+              pageImages.unshift({index: before , imageInfo: images[before]});
+              j--;
+            }else{
+              // 縦長の前が横長だった場合
+              pageImages.unshift({index: null , imageInfo: blank});
+            }
+            // 横画像の場合は次のページになる
+          }else{
+            // 状況的に1p戻った状態で最初のページに画像が一枚だった場合
+              pageImages.unshift({index: null , imageInfo: blank});
+          }
+        }else{
+          // 横長 or 正方形(単ページ)
+          pageImages.push({index: j , imageInfo: images[j]});
+        }
+
+        beforePages.unshift({show: false, pageImages: pageImages});
+      }
+
+      let pages = beforePages.concat(afterPages);
+
+      console.debug("createViewPagesWithCurrentImagePageForAutoMode end")
+      console.debug(pages);
+      return [pages, beforePages.length];
+
+    },
+    createViewPagesWithCurrentImagePage: function(images, currentImagePage, numberOfPage){
+
+      console.debug("createViewPagesWithCurrentImagePage start")
+      let blank = new ImageInfo();
+
+      let afterPages = []; // currentImagePage以降のページ
+      let beforePages = []; // currentImagePageの前ページ
+
+      // 現在の画像より後ページ作成
+      for(var i = currentImagePage; i < images.length; i += numberOfPage){
         let pageImages = [];
         for(var j = 0; j < numberOfPage; j++){
-          if((i + j) < len){
-            let index = i + j - beforeBlankCount;
-            if(index < 0 ){
-              // before blank
-              pageImages.push({index: null , imageInfo: blank});
-            }else{
-              pageImages.push({index: index , imageInfo: tempImages[i+j]});
-            }
+          let index = i + j;
+          if(index < images.length){
+            pageImages.push({index: index , imageInfo: images[index]});
           }else{
             // after blank
             pageImages.push({index: null , imageInfo: blank});
           }
         }
-        pages.push({show: false, pageImages: pageImages});
+        afterPages.push({show: false, pageImages: pageImages});
       }
+
+      // 現在の画像より前ページ作成
+      for(var i = currentImagePage - 1; i >= 0; i -= numberOfPage){
+        let pageImages = [];
+        for(var j = 0; j < numberOfPage; j++){
+          let before = i - j;
+          if(before >= 0){
+            pageImages.unshift({index: before , imageInfo: images[before]});
+          }else{
+            // ページによりブランクができてしまう
+            pageImages.unshift({index: null , imageInfo: blank});
+          }
+        }
+
+        beforePages.unshift({show: false, pageImages: pageImages});
+      }
+
+      let pages = beforePages.concat(afterPages);
+
+      console.debug("createViewPagesWithCurrentImagePage end")
       console.debug(pages);
-      // pages.forEach((page) => {
-      //   page.pageImages.forEach((pageImage) => {
-      //     console.debug("pageImage", "index", pageImage.index, pageImage.imageInfo.isBlank, pageImage.imageInfo.filename);
-      //   });
-      // });
-      return pages;
+      return [pages, beforePages.length];
+
     },
     changeNumberOfPage: function(newNum){
       
       console.log("changeNumberOfPage", newNum);
 
       this.notifyChangeNumberOfPage(newNum);
-      // 現在のページを維持する為にここでviewPageの更新を行う
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, newNum, 0);
+
 
       // プロパティ numberOfPageが更新されてからの判定が必要となる為、次の描画処理で実行
       this.$nextTick(function(){
         console.debug("changeNumberOfPage -> nextTick", this.viewConfig.numberOfPage, this.currentPage);
-        if(this.viewPages.length > 0){
-          this.viewPages[this.currentPage].show = true;
-        }
+        this.createViewPagesAndSetCurrentPage();
       });
     },
     rebuildViewPages: function(){
       console.log("ViewerMain rebuildViewPages");
       // viewPagesを更新することで最新の情報で再描画を行う
       this.currentImagePage = 0;
-      this.viewPages = this.createViewPagesWithBeforeBlank(this.filterImages, this.viewConfig.numberOfPage, 0);
-      if(this.viewPages.length > 0){
-        this.viewPages[this.currentPage].show = true;
-      }
+      this.createViewPagesAndSetCurrentPage();
     },
   }
 }
