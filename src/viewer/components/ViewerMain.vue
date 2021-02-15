@@ -23,6 +23,9 @@
         :filtering-result="filteringResult"
       />
     </b-modal>
+    <b-modal id="modal-notify-changed" hide-footer hide-header @show="showNotigyCanged">
+      表示モードが<span class="viewer-mode">{{convertMessage[viewConfig.numberOfPage]}}</span>に変更されました
+    </b-modal>
     <ViewerPage
       v-for="(viewPage, index) in viewPages"
       :key="index"
@@ -66,6 +69,7 @@ export default {
       pageWidth: window.innerWidth,
       pageHeight: window.innerHeight,
       isMenuDialogShow: false,
+      convertMessage: {0: "自動", 1: "単ページ", 2:"見開き" },
     }
   },
   watch: {
@@ -326,6 +330,7 @@ export default {
       this.$nextTick(function(){
         console.debug("changeNumberOfPage -> nextTick", this.viewConfig.numberOfPage, this.currentPage);
         this.createViewPagesAndSetCurrentPage();
+        this.$bvModal.show("modal-notify-changed");
       });
     },
     rebuildViewPages: function(){
@@ -334,6 +339,12 @@ export default {
       this.currentImagePage = 0;
       this.createViewPagesAndSetCurrentPage();
     },
+    showNotigyCanged: function(){
+      this.showNotifyChangedTimerId = setTimeout(this.closeNotifyChanged, 2000)
+    },
+    closeNotifyChanged: function(){
+      this.$bvModal.hide("modal-notify-changed");
+    }
   }
 }
 
@@ -352,8 +363,9 @@ export default {
   color: cornflowerblue;
 }
 
-.error {
+.viewer-mode{
   color: red;
+  font-weight: bold;
 }
 
 </style>
